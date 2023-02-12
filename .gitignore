@@ -1,4 +1,7 @@
-/ui/node_modules
-/ui/build
-/ui/yarn.lock
+/frontend/node_modules
+/frontend/build
+/frontend/firebase.json
+/frontend/yarn.lock
+.DS_Store
+
 
