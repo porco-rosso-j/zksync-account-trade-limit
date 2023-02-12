@@ -7,3 +7,7 @@
 	path = lib/solmate
 	url = https://github.com/rari-capital/solmate
     ignore=dirty
+[submodule "lib/v2-core"]
+	path = lib/v2-core
+	url = https://github.com/uniswap/v2-core
+	branch = v1.0.1
