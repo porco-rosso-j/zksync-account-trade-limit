@@ -27,10 +27,15 @@ const zkSyncTestnet =
       }
     : {
         url: "https://zksync2-testnet.zksync.dev",
-        ethNetwork: process.env.ALCHEMY_URL, // e.g. alchemy url
+        ethNetwork: "https://eth-mainnet.g.alchemy.com/v2/" + process.env.ALCHEMY_API_KEY_GOERLI, // e.g. alchemy url
         zksync: true,
         verifyURL: 'https://zksync2-testnet-explorer.zksync.dev/contract_verification'
       };
+
+const compilers = [
+    {version: "0.4.0"}, {version: "0.5.16"}, {version: "0.6.0"}, {version: "0.6.6"},
+    {version: "0.6.12"}, {version: "0.8.0"}, {version: "0.8.1"}, {version: "0.8.11"},
+]
 
 interface HHzkSyncFoundryConfig extends HardhatUserConfig {
     zksolc:any,
@@ -44,29 +49,7 @@ const config: HHzkSyncFoundryConfig = {
         settings: {},
       },
   solidity: {
-    compilers: [    
-        {
-        version: "0.6.0"
-        },    
-        {
-        version: "0.6.6"
-        },
-        {
-        version: "0.8.0"
-        },
-        {
-        version: "0.8.1"
-        },
-        {
-        version: "0.8.7",
-        settings: {
-          optimizer: {
-            enabled: true,
-            runs: 200
-          }
-        }
-        },
-        ],
+    compilers: compilers
   },
   defaultNetwork: "zkSyncTestnet",
 
@@ -96,7 +79,7 @@ const config: HHzkSyncFoundryConfig = {
 
   paths: {
     sources: "./src", // Use ./src rather than ./contracts as Hardhat expects
-    cache: "./cache_hardhat", // Use a different cache for Hardhat than Foundry
+    cache: "./cache", // Use a different cache for Hardhat than Foundry
   },
 };
 

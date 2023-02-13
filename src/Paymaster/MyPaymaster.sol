@@ -1,13 +1,15 @@
-pragma solidity >=0.6.0 <=0.8.7;
+pragma solidity 0.8.11;
 
 import {IPaymaster, ExecutionResult} from "zksync-contracts/interfaces/IPaymaster.sol";
 import {IPaymasterFlow} from "zksync-contracts/interfaces/IPaymasterFlow.sol";
 import {TransactionHelper, Transaction} from "zksync-contracts/libraries/TransactionHelper.sol";
 import "zksync-contracts/Constants.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "src/Swap/periphery/SwapRouter.sol";
+import "zksync-contracts/openzeppelin/token/ERC20/IERC20.sol";
+import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 
 contract MyPaymaster is IPaymaster {
+    IUniswapV2Router02 public swapRouter;
+
     address public owner;
 
     struct TokenInfo {
@@ -32,8 +34,9 @@ contract MyPaymaster is IPaymaster {
         _;
     }
 
-    constructor() {
+    constructor(address _swapRouter) {
         owner = msg.sender;
+        swapRouter = IUniswapV2Router02(_swapRouter);
     }
 
     function validateAndPayForPaymasterTransaction(

@@ -9,6 +9,5 @@ cache_path  = 'forge-cache'
 [rpc_endpoints]
 ethereum="https://eth-mainnet.g.alchemy.com/v2/${ALCHEMY_API_KEY}"
 localhost="http://localhost:8545"
-goerli="https://goerli.infura.io/v3/${ALCHEMY_API_KEY_GOERLI}"
-
+goerli="https://eth-goerli.g.alchemy.com/v2/${ALCHEMY_API_KEY_GOERLI}"
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config

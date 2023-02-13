@@ -15,9 +15,8 @@
     "devDependencies": {
         "@matterlabs/hardhat-zksync-chai-matchers": "^0.1.0",
         "@matterlabs/hardhat-zksync-deploy": "^0.6.1",
-        "@matterlabs/hardhat-zksync-solc": "^0.3.12",
+        "@matterlabs/hardhat-zksync-solc": "0.3.14",
         "@matterlabs/hardhat-zksync-toolbox": "^0.1.0",
-        "@matterlabs/signature-checker": "^1.1.1",
         "@nomicfoundation/hardhat-chai-matchers": "^1.0.5",
         "@nomiclabs/hardhat-ethers": "^2.0.6",
         "@nomiclabs/hardhat-waffle": "^2.0.3",

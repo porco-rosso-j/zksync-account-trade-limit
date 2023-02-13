@@ -11,8 +11,12 @@
 	path = lib/v2-testnet-contracts
 	url = https://github.com/matter-labs/v2-testnet-contracts
     ignore=dirty
+	branch = sb-update-for-new-regenesis
 [submodule "lib/openzeppelin-contracts"]
 	path = lib/openzeppelin-contracts
 	url = https://github.com/openzeppelin/openzeppelin-contracts
-	branch = v4.8.1
-    ignore=dirty
+	branch = master
+    ignore =dirty
+[submodule "lib/aa-signature-checker"]
+	path = lib/aa-signature-checker
+	url = https://github.com/matter-labs/aa-signature-checker
