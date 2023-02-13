@@ -55,30 +55,21 @@ export default function Layout({ children }: Props) {
   return (
     <Menu>
       <Flex alignItems="center" mx="1.5rem" mt="1.5rem">
-        <Image boxSize={getLogoSize()} src={logo} alt="Nongaswap" />
+        <Image boxSize={getLogoSize()} src={logo} alt="nongaswap logo" />
         <Spacer />
         <VStack spacing={4}>
           <Switch
-            colorScheme="purple"
+            colorScheme="green"
             onChange={toggleColorMode}
             isChecked={isDarkMode}
             fontSize={getFontSize()}
-            fontWeight="500"
+            fontWeight="400"
             color={isDarkMode ? "white" : "black"}
           >
             Switch to {isDarkMode ? "light" : "dark"} mode
           </Switch>
           <ConnectButton handleOpenModal={onOpen} fontSize={getFontSize()} />
-          <HStack spacing={1}>
-            <SocialIcon
-              url="https://github.com/porco-rosso-j/zksync-nongaswap"
-              target="_blank"
-              fgColor="white"
-              bgColor="black"
-              // bgColor={useColorModeValue("black", "rgb(110,110,110)")}
-              style={getIconStyle()}
-            />
-          </HStack>
+
         </VStack>
 
         <AccountModal isOpen={isOpen} onClose={onClose} />
