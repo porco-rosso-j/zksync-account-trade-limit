@@ -1,7 +1,19 @@
+/artifacts-zk
+/cache_hardhat
+/cache_hardhat-zk
+/forge-cache
+
 /frontend/node_modules
 /frontend/build
 /frontend/firebase.json
 /frontend/yarn.lock
+
+/node_modules
+/out
+/typechain-types
+
+/src/garbages
+.env
 .DS_Store
 
 

@@ -1,0 +1,7 @@
+src=src/
+ds-test/=lib/forge-std/lib/ds-test/src/
+forge-std/=lib/forge-std/src/
+solmate/=lib/solmate/src/
+zksync-contracts/=lib/v2-testnet-contracts/l2/system-contracts/
+@openzeppelin/=lib/openzeppelin-contracts/
+@uniswap/=src/Swap/
