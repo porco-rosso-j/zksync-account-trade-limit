@@ -8,12 +8,12 @@
 /frontend/build
 /frontend/firebase.json
 /frontend/yarn.lock
+/garbages
 
 /node_modules
 /out
 /typechain-types
 
-/garbages
 .env
 .DS_Store
 
