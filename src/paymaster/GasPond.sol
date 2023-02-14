@@ -1,3 +1,4 @@
+//SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.11;
 
 import {IPaymaster, ExecutionResult} from "zksync-contracts/interfaces/IPaymaster.sol";
@@ -8,9 +9,9 @@ import {IERC20} from "zksync-contracts/openzeppelin/token/ERC20/IERC20.sol";
 
 import {BytesLib} from "./lib/BytesLib.sol";
 import {GasPondStorage} from "./GasPondStorage.sol";
-import {ERC20PaymentHelper} from "./utils/ERC20PaymentHelper.sol";
+import {GasPondHelper} from "./utils/GasPondHelper.sol";
 
-contract GasPond is IPaymaster, GasPondStorage, ERC20PaymentHelper {
+contract GasPond is IPaymaster, GasPondStorage, GasPondHelper {
     using TransactionHelper for Transaction;
     using BytesLib for bytes;
 
@@ -29,7 +30,7 @@ contract GasPond is IPaymaster, GasPondStorage, ERC20PaymentHelper {
     }
 
     constructor(address _weth, address _swapRouter)
-        ERC20PaymentHelper(_weth, _swapRouter)
+        GasPondHelper(_weth, _swapRouter)
     {
         owner = msg.sender;
     }
@@ -58,38 +59,38 @@ contract GasPond is IPaymaster, GasPondStorage, ERC20PaymentHelper {
             _transaction.paymasterInput[0:4]
         );
 
-        _contractValidations(
-            _transaction.data,
-            address(uint160(_transaction.to))
-        );
+        _validateContract(_transaction.data, address(uint160(_transaction.to)));
 
         uint256 eth_fee = _transaction.gasLimit * _transaction.maxFeePerGas;
 
         if (paymasterInputSelector == IPaymasterFlow.approvalBased.selector) {
-            _approvalBasedFlow(_transaction);
+            _approvalBasedFlow(_transaction, eth_fee);
         } else if (paymasterInputSelector == IPaymasterFlow.general.selector) {
-            _assetOwnershipValidations(address(uint160(_transaction.from)));
+            _validateOwnership(address(uint160(_transaction.from)));
         } else {
             revert("Unsupported paymaster flow");
         }
 
-        _limitValidation(
+        _validateLimit(
             eth_fee,
             _transaction.gasLimit,
             _transaction.maxFeePerGas
         );
 
-        payErgs(eth_fee);
+        _payErgs(eth_fee);
     }
 
-    function payErgs(uint256 _eth_fee) internal {
+    function _payErgs(uint256 _eth_fee) internal {
         (bool success, ) = payable(BOOTLOADER_FORMAL_ADDRESS).call{
             value: _eth_fee
         }("");
         require(success, "gas payment failed");
     }
 
-    function _approvalBasedFlow(Transaction calldata _transaction) internal {
+    function _approvalBasedFlow(
+        Transaction calldata _transaction,
+        uint256 _eth_fee
+    ) internal {
         (address token, uint256 allowance, ) = abi.decode(
             _transaction.paymasterInput[4:],
             (address, uint256, bytes)
@@ -102,11 +103,7 @@ contract GasPond is IPaymaster, GasPondStorage, ERC20PaymentHelper {
         require(erc20payment.isEnabled, "Invalid Token");
         require(erc20payment.minFee <= allowance, "Invalid Allowance");
 
-        (uint256 token_fee, uint256 eth_fee) = _calcuFees(
-            _transaction.gasLimit,
-            _transaction.maxFeePerGas,
-            token
-        );
+        uint256 token_fee = _getTokenFee(token, _eth_fee);
 
         if (erc20payment.discountRate != 0) {
             token_fee =
@@ -117,13 +114,16 @@ contract GasPond is IPaymaster, GasPondStorage, ERC20PaymentHelper {
         _payInERC20(token, token_fee, address(uint160(_transaction.from)));
     }
 
-    function _contractValidations(bytes memory _data, address _to) internal {
-        if (isContractBasedValidationEnabled) {
-            require(isValidContract[_to], "Invalid Contract");
+    function _validateContract(bytes memory _data, address _to) internal view {
+        if (contracts.isSponsoringEnabled) {
+            require(contracts.isValidContract[_to], "Invalid Contract");
 
-            if (isFunctionBasedValidationEnabled) {
+            if (contracts.isFunctionSponsoringEnabled) {
                 bytes4 selector = BytesLib.getSelector(_data);
-                require(isValidFunction[selector], "Invalid Function");
+                require(
+                    contracts.isValidFunction[selector],
+                    "Invalid Function"
+                );
             }
         }
 
@@ -133,7 +133,7 @@ contract GasPond is IPaymaster, GasPondStorage, ERC20PaymentHelper {
     // if enabled, holders of certain assets like a governance token or a NFT
     // can be entitiled for being sponsored.
     // e.g. 1000 xSUSHI holder can transact for free on Sushiswap.
-    function _assetOwnershipValidations(address _from) internal {
+    function _validateOwnership(address _from) internal view {
         if (ownership.isEnabled) {
             uint256 balance = IERC20(ownership.asset).balanceOf(_from);
             require(balance >= ownership.minOwnership, "Invalid Holdings");
@@ -141,7 +141,7 @@ contract GasPond is IPaymaster, GasPondStorage, ERC20PaymentHelper {
         return;
     }
 
-    function _limitValidation(
+    function _validateLimit(
         uint256 _eth_fee,
         uint256 _maxGas,
         uint256 _maxFeePerGas
@@ -150,7 +150,7 @@ contract GasPond is IPaymaster, GasPondStorage, ERC20PaymentHelper {
 
         require(
             limit.maxGas <= _maxGas && limit.maxFeePerGas <= _maxFeePerGas,
-            "Invalid Gas"
+            "INVALID_GAS"
         );
 
         uint256 timestamp = block.timestamp;
@@ -163,7 +163,7 @@ contract GasPond is IPaymaster, GasPondStorage, ERC20PaymentHelper {
         }
 
         // reverts if the amount exceeds the remaining available amount.
-        require(limit.available >= _eth_fee, "Exceed limit");
+        require(limit.available >= _eth_fee, "EXCEED_LIMIT");
 
         // decrement `available`
         limit.available -= _eth_fee;
@@ -181,36 +181,82 @@ contract GasPond is IPaymaster, GasPondStorage, ERC20PaymentHelper {
     }
 
     // ================================================================= //
-    //                        Client Operations                          //
+    //                        Paymaster Operations                          //
     // ================================================================= //
 
     function registerCompensation() public {}
 
-    function _depositETH() internal {}
-
-    function _withdrawETH() internal {}
-
-    function _withdrawToken() internal {}
-
     // addSonsorableOwnership()
 
-    function addERC20Payment(
+    // --- Paymaster's Limit Configurations --- //
+
+    function setLimit(
+        uint256 _limit,
+        uint256 _duration,
+        uint256 _maxFeePerGas,
+        uint256 _maxGas
+    ) public onlyOwner {
+        require(_limit != 0, "INVALID_AMOUNT");
+        require(_duration != 0, "INVALID_AMOUNT");
+        require(_maxFeePerGas != 0, "INVALID_AMOUNT");
+        require(_maxGas != 0, "INVALID_AMOUNT");
+
+        limit = Limit(
+            _limit,
+            _limit,
+            _duration,
+            0,
+            _maxFeePerGas,
+            _maxGas,
+            true
+        );
+    }
+
+    function removeLimit() public onlyOwner {
+        require(limit.isEnabled, "LIMIT_NOT_ENABLED");
+        limit = Limit(0, 0, 0, 0, 0, 0, false);
+    }
+
+    // --- Paymaster's Sponcoring Configurations --- //
+
+    function setSponcorableOwnership(address _asset, uint256 _minOwnership)
+        public
+        onlyOwner
+    {
+        require(_asset != address(0), "INVALID_ASSET");
+        require(_minOwnership >= 1, "INVALID_AMOUNT");
+        ownership = SponcorableOwnership(_asset, _minOwnership, true);
+    }
+
+    function removeSponcorableOwnership() public onlyOwner {
+        require(ownership.isEnabled, "ALREADY_ENABLED");
+        ownership = SponcorableOwnership(address(0), 0, false);
+    }
+
+    // --- Paymaster's ERC20 Configurations --- //
+
+    function setERC20PaymentInfo(
         address _token,
         uint256 _amount,
         uint256 _discountRate
     ) public onlyOwner {
+        require(_token != address(0), "INVALID_TOKEN");
+        require(_amount != 0, "INVALID_AMOUNT");
+        require(_discountRate != 0, "INVALID_AMOUNT");
         erc20payments[_token].minFee = _amount;
         erc20payments[_token].discountRate = _discountRate;
         erc20payments[_token].isEnabled = true;
     }
 
-    function removeERC20Payment(address _token) public onlyOwner {
+    function removeERC20PaymentInfo(address _token) public onlyOwner {
+        require(!erc20payments[_token].isEnabled, "NOT_ENABLED");
         erc20payments[_token].minFee = 0;
         erc20payments[_token].discountRate = 0;
         erc20payments[_token].isEnabled = false;
     }
 
     function setMinTokenFee(address _token, uint256 _amount) public onlyOwner {
+        require(_token != address(0), "INVALID_TOKEN");
         require(_amount != 0, "INVALID_AMOUNT");
         erc20payments[_token].minFee = _amount;
     }
@@ -219,9 +265,110 @@ contract GasPond is IPaymaster, GasPondStorage, ERC20PaymentHelper {
         public
         onlyOwner
     {
+        require(_token != address(0), "INVALID_TOKEN");
         require(_discountRate != 0, "INVALID_AMOUNT");
         erc20payments[_token].discountRate = _discountRate;
     }
 
-    receive() external payable {}
+    // --- Paymaster's Contract&Function Configurations --- //
+
+    function enableSponsoringContract() public onlyOwner {
+        require(!contracts.isSponsoringEnabled, "ALREADY_ENABLED");
+        contracts.isSponsoringEnabled = true;
+    }
+
+    function disableSponsoringContract() public onlyOwner {
+        require(contracts.isSponsoringEnabled, "NOT_ENABLED");
+        contracts.isSponsoringEnabled = false;
+    }
+
+    function setSponsoredContract(address[] memory _contracts)
+        public
+        onlyOwner
+    {
+        for (uint256 i = 0; i < _contracts.length; i++) {
+            address targetContract = _contracts[i];
+            require(targetContract != address(0), "INVALID_ADDRESS");
+            if (!contracts.isValidContract[targetContract]) {
+                contracts.isValidContract[targetContract] = true;
+            }
+        }
+    }
+
+    function removeSponsoredContract(address _contract) public onlyOwner {
+        require(contracts.isSponsoringEnabled, "NOT_ENABLED");
+        require(contracts.isValidContract[_contract], "NOT_VALID");
+        contracts.isValidContract[_contract] = false;
+    }
+
+    function enableSponsoringFunction(address _contract) public onlyOwner {
+        require(contracts.isSponsoringEnabled, "NOT_ENABLED");
+        require(!contracts.isFunctionSponsoringEnabled, "ALREADY_ENABLED");
+        contracts.isFunctionSponsoringEnabled = true;
+    }
+
+    function disableSponsoringFunction(address _contract) public onlyOwner {
+        require(contracts.isFunctionSponsoringEnabled, "NOT_ENABLED");
+        contracts.isFunctionSponsoringEnabled = false;
+    }
+
+    function setSponsoredFunction(address _contract, bytes4[] memory _selectors)
+        public
+        onlyOwner
+    {
+        require(contracts.isSponsoringEnabled, "NOT_ENABLED");
+        require(contracts.isFunctionSponsoringEnabled, "NOT_ENABLED");
+
+        for (uint256 i = 0; i < _selectors.length; i++) {
+            bytes4 selector = _selectors[i];
+            require(selector != bytes4(0), "INVALID_BYTE");
+            contracts.isValidFunction[selector] = true;
+        }
+    }
+
+    function removeSponsoredFucntion(bytes4 _selector) public onlyOwner {
+        require(contracts.isSponsoringEnabled, "NOT_ENABLED");
+        require(contracts.isFunctionSponsoringEnabled, "NOT_ENABLED");
+        require(!contracts.isValidFunction[_selector]);
+        contracts.isValidFunction[_selector] = false;
+    }
+
+    // --- Paymaster's token Operations --- //
+
+    function withdrawETH(uint256 _amount) public onlyOwner {
+        require(_amount != 0, "INVALID_AMOUNT");
+        _withdrawETH(_amount);
+    }
+
+    function withdrawToken(address _token, uint256 _amount) public onlyOwner {
+        require(erc20payments[_token].isEnabled, "INVALID_TOKEN");
+        require(_amount != 0, "INVALID_AMOUNT");
+        uint256 balance = IERC20(_token).balanceOf(address(this));
+        require(balance != 0, "NO_BALANCE");
+        _withdrawToken(_token, _amount);
+    }
+
+    function swapTokensForETH(
+        address[] memory _tokens,
+        uint256[] memory _amounts
+    ) public onlyOwner {
+        require(
+            _tokens.length == _amounts.length && _tokens.length != 0,
+            "INVALID_LENDGTH"
+        );
+        for (uint256 i = 0; i < _tokens.length; i++) {
+            swapTokenForETH(_tokens[i], _amounts[i]);
+        }
+    }
+
+    function swapTokenForETH(address _token, uint256 _amount) public onlyOwner {
+        require(_token != address(0), "INVALID_ADDRESS");
+        require(_amount != 0, "INVALID_AMOUNT");
+
+        _swapERC20ForETH(_token, _amount);
+    }
+
+    receive() external payable {
+        require(msg.sender == owner, "INVALID_SENDER");
+    }
 }

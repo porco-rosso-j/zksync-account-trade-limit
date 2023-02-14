@@ -1,3 +1,4 @@
+//SPDX-License-Identifier: UNLICENSED
 pragma solidity 0.8.11;
 
 abstract contract GasPondStorage {
@@ -6,9 +7,9 @@ abstract contract GasPondStorage {
 
     struct Limit {
         uint256 limit; // times, ETH or total gas amount?
+        uint256 available;
         uint256 duration; // hourly, daily, weekly, or monthly in timestamp
         uint256 resetTime;
-        uint256 available;
         uint256 maxFeePerGas; // The maximum fee per gas that paymaster is willing to pay for users
         uint256 maxGas; // The maximum gas that paymaster accepts for a tx.
         bool isEnabled;
@@ -20,7 +21,15 @@ abstract contract GasPondStorage {
         bool isEnabled;
     }
 
+    struct SponsorableContract {
+        bool isSponsoringEnabled;
+        bool isFunctionSponsoringEnabled;
+        mapping(address => bool) isValidContract;
+        mapping(bytes4 => bool) isValidFunction;
+    }
+
     struct ERC20PaymentInfo {
+        uint256 maxFee;
         uint256 minFee;
         uint256 discountRate; // default 0, say, can be 50% (5e17)
         bool isEnabled;
@@ -28,12 +37,7 @@ abstract contract GasPondStorage {
 
     Limit public limit;
     SponcorableOwnership public ownership;
-
-    bool public isContractBasedValidationEnabled;
-    bool public isFunctionBasedValidationEnabled;
-
-    mapping(address => bool) public isValidContract;
-    mapping(bytes4 => bool) public isValidFunction;
+    SponsorableContract public contracts;
 
     mapping(address => ERC20PaymentInfo) public erc20payments;
 }
