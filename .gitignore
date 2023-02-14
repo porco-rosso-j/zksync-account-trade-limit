@@ -8,10 +8,12 @@
 /frontend/build
 /frontend/firebase.json
 /frontend/yarn.lock
-/garbages
+/garbages/
 
 /node_modules
 /out
+
+/src/paymaster/doc/
 /typechain-types
 
 .env
