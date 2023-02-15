@@ -9,9 +9,9 @@ import {IERC20} from "zksync-contracts/openzeppelin/token/ERC20/IERC20.sol";
 
 import {BytesLib} from "./lib/BytesLib.sol";
 import {GasPondStorage} from "./GasPondStorage.sol";
-import {GasPondHelper} from "./utils/GasPondHelper.sol";
+import {GasPondTokenHelper} from "./GasPondTokenHelper.sol";
 
-contract GasPond is IPaymaster, GasPondStorage, GasPondHelper {
+contract GasPond is IPaymaster, GasPondStorage, GasPondTokenHelper {
     using TransactionHelper for Transaction;
     using BytesLib for bytes;
 
@@ -30,13 +30,13 @@ contract GasPond is IPaymaster, GasPondStorage, GasPondHelper {
     }
 
     constructor(address _weth, address _swapRouter)
-        GasPondHelper(_weth, _swapRouter)
+        GasPondTokenHelper(_weth, _swapRouter)
     {
         owner = msg.sender;
     }
 
     // ================================================================= //
-    //                        Paymaster Operatiosn                       //
+    //                        Paymaster Validation                       //
     // ================================================================= //
 
     function validateAndPayForPaymasterTransaction(
@@ -96,14 +96,13 @@ contract GasPond is IPaymaster, GasPondStorage, GasPondHelper {
             (address, uint256, bytes)
         );
 
-        require(token != address(0), "Address Zero");
-        require(allowance != 0, "Allowance Zero");
-
         ERC20PaymentInfo memory erc20payment = erc20payments[token];
-        require(erc20payment.isEnabled, "Invalid Token");
-        require(erc20payment.minFee <= allowance, "Invalid Allowance");
+        require(erc20payment.isEnabled, "INVALID_TOKEN");
+        require(erc20payment.minFee <= allowance, "INVALID_ALLOWANCE");
 
         uint256 token_fee = _getTokenFee(token, _eth_fee);
+
+        require(erc20payment.maxFee >= token_fee, "EXCEED_MAXFEE");
 
         if (erc20payment.discountRate != 0) {
             token_fee =
@@ -184,10 +183,6 @@ contract GasPond is IPaymaster, GasPondStorage, GasPondHelper {
     //                        Paymaster Operations                          //
     // ================================================================= //
 
-    function registerCompensation() public {}
-
-    // addSonsorableOwnership()
-
     // --- Paymaster's Limit Configurations --- //
 
     function setLimit(
@@ -237,28 +232,37 @@ contract GasPond is IPaymaster, GasPondStorage, GasPondHelper {
 
     function setERC20PaymentInfo(
         address _token,
-        uint256 _amount,
+        uint256 _maxFee,
+        uint256 _minFee,
         uint256 _discountRate
     ) public onlyOwner {
         require(_token != address(0), "INVALID_TOKEN");
-        require(_amount != 0, "INVALID_AMOUNT");
-        require(_discountRate != 0, "INVALID_AMOUNT");
-        erc20payments[_token].minFee = _amount;
+        require(_maxFee != 0, "INVALID_AMOUNT");
+        require(_minFee != 0, "INVALID_AMOUNT");
+        require(_discountRate != 0 && _discountRate <= 1e18, "INVALID_AMOUNT");
+        erc20payments[_token].maxFee = _maxFee;
+        erc20payments[_token].minFee = _minFee;
         erc20payments[_token].discountRate = _discountRate;
         erc20payments[_token].isEnabled = true;
     }
 
     function removeERC20PaymentInfo(address _token) public onlyOwner {
         require(!erc20payments[_token].isEnabled, "NOT_ENABLED");
+        erc20payments[_token].maxFee = 0;
         erc20payments[_token].minFee = 0;
         erc20payments[_token].discountRate = 0;
         erc20payments[_token].isEnabled = false;
     }
 
-    function setMinTokenFee(address _token, uint256 _amount) public onlyOwner {
+    function setMaxAndMinTokenFee(
+        address _token,
+        uint256 _maxFee,
+        uint256 _minFee
+    ) public onlyOwner {
         require(_token != address(0), "INVALID_TOKEN");
-        require(_amount != 0, "INVALID_AMOUNT");
-        erc20payments[_token].minFee = _amount;
+        require(_maxFee != 0, "INVALID_AMOUNT");
+        require(_minFee != 0, "INVALID_AMOUNT");
+        erc20payments[_token].minFee = _minFee;
     }
 
     function setDiscountRate(address _token, uint256 _discountRate)
@@ -301,21 +305,18 @@ contract GasPond is IPaymaster, GasPondStorage, GasPondHelper {
         contracts.isValidContract[_contract] = false;
     }
 
-    function enableSponsoringFunction(address _contract) public onlyOwner {
+    function enableSponsoringFunction() public onlyOwner {
         require(contracts.isSponsoringEnabled, "NOT_ENABLED");
         require(!contracts.isFunctionSponsoringEnabled, "ALREADY_ENABLED");
         contracts.isFunctionSponsoringEnabled = true;
     }
 
-    function disableSponsoringFunction(address _contract) public onlyOwner {
+    function disableSponsoringFunction() public onlyOwner {
         require(contracts.isFunctionSponsoringEnabled, "NOT_ENABLED");
         contracts.isFunctionSponsoringEnabled = false;
     }
 
-    function setSponsoredFunction(address _contract, bytes4[] memory _selectors)
-        public
-        onlyOwner
-    {
+    function setSponsoredFunction(bytes4[] memory _selectors) public onlyOwner {
         require(contracts.isSponsoringEnabled, "NOT_ENABLED");
         require(contracts.isFunctionSponsoringEnabled, "NOT_ENABLED");
 
