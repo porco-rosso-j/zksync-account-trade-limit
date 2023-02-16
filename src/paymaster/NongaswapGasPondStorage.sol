@@ -30,6 +30,9 @@ abstract contract NongaswapGasPondStorage {
     struct SwapAssetSponsor {
         bool isEnabled;
         mapping(address => bool) isSupported;
+        // minimum amount
+        // pair
+        // ...
     }
 
     struct ERC20Payment {

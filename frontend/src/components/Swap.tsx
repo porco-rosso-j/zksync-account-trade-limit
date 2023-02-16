@@ -31,9 +31,9 @@ import {
   ERC20Interface,
   useEtherBalance,
   useTokenBalance,
-  ZkSyncTestnet,
+  useConfig
 } from "@usedapp/core";
-import { useConfig } from "@usedapp/core";
+
 import { Contract } from "@ethersproject/contracts";
 import { BigNumber } from "ethers";
 
@@ -58,65 +58,60 @@ export default function Trade() {
   const { colorMode } = useColorMode();
 
   const [estimatedQuote, setEstimatedQuote] = useState<number>(0);
-  const [srcUsd, setSrcUsd] = useState<number>(0);
-  const [destUsd, setDestUsd] = useState<number>(0);
+  const [tokenInUsd, setTokenInUsd] = useState<number>(0);
+  const [tokenOutUsd, setTokenOutUsd] = useState<number>(0);
   const [estimatedOneSrcTokenQuote, setEstimatedOneSrcTokenQuote] =
     useState<number>(0);
-  const [srcToken, setSrcToken] = useState<Token | null>(null);
-  const [destToken, setDestToken] = useState<Token | null>(null);
-  const [srcChain, setSrcChain] = useState<string>("zksync");
-  const [destChain, setDestChain] = useState<string>("zksync");
+  const [tokenIn, setTokenIn] = useState<Token | null>(null);
+  const [tokenOut, setTokenOut] = useState<Token | null>(null);
   const [disabled, setDisabled] = useState<boolean>(false);
 
   const [srcQuantity, setSrcQuantity] = useState<BigInt>(BigInt(0));
   const readableSrcQuantity =
-    srcQuantity && srcToken
+    srcQuantity && tokenIn
       ? Number(
           srcQuantity.valueOf() /
-            BigInt(10 ** Math.max(0, srcToken.decimals - 10))
+            BigInt(10 ** Math.max(0, tokenIn.decimals - 10))
         ) /
-        10 ** Math.min(srcToken.decimals, 10)
+        10 ** Math.min(tokenIn.decimals, 10)
       : 0;
 
-  const isSrcTokenNative =
-    srcToken?.getAddressFromEncodedTokenName() === "native";
+  const isNativeToken =
+  tokenOut?.getAddressFromEncodedTokenName() === "native";
+  
   const etherBalance = useEtherBalance(account);
-  const srcErc20Balance: BigNumber | undefined = useTokenBalance(
-    isSrcTokenNative === false
-      ? srcToken?.getAddressFromEncodedTokenName()
+  const tokenInErc20Balance: BigNumber | undefined = useTokenBalance(
+    isNativeToken === false
+      ? tokenIn?.getAddressFromEncodedTokenName()
       : undefined,
     account
   );
-  const srcTokenBalance =
-    isSrcTokenNative === false
-      ? srcErc20Balance?.toBigInt()
-      : (chainId === ZkSyncTestnet.chainId && srcChain === "zksync") ||
-        (chainId === ZkSyncTestnet.chainId && srcChain === "zksync")
-      ? etherBalance?.toBigInt()
-      : undefined;
-  const readableSrcTokenBalance = srcTokenBalance
-    ? Number(srcTokenBalance / BigInt(10 ** (srcToken?.decimals - 4))) / 10000
-    : 0;
-  const userHasSufficientBalance =
-    srcToken && srcTokenBalance ? srcTokenBalance >= srcQuantity : false;
 
-  const isDestTokenNative =
-    destToken?.getAddressFromEncodedTokenName() === "native";
-  const destErc20Balance: BigNumber | undefined = useTokenBalance(
-    isDestTokenNative === false && srcChain === destChain
-      ? destToken?.getAddressFromEncodedTokenName()
+  const tokenInBalance =
+  isNativeToken === false
+      ? tokenInErc20Balance?.toBigInt()
+      : etherBalance?.toBigInt()
+
+  const readableSrcTokenBalance = tokenInBalance
+    ? Number(tokenInBalance / BigInt(10 ** (tokenIn?.decimals - 4))) / 10000
+    : 0;
+
+  const userHasSufficientBalance =
+    tokenIn && tokenInBalance ? tokenInBalance >= srcQuantity : false;
+    
+  const tokenOutErc20Balance: BigNumber | undefined = useTokenBalance(
+    isNativeToken === false
+      ? tokenOut?.getAddressFromEncodedTokenName()
       : undefined,
     account
   );
-  const destTokenBalance =
-    isDestTokenNative === false
-      ? destErc20Balance?.toBigInt()
-      : (chainId === ZkSyncTestnet.chainId && destChain === "zksync") ||
-        (chainId === ZkSyncTestnet.chainId && destChain === "zksync")
-      ? etherBalance?.toBigInt()
-      : undefined;
-  const readableDestTokenBalance = destTokenBalance
-    ? Number(destTokenBalance / BigInt(10 ** (destToken?.decimals - 4))) / 10000
+  const tokenOutBalance =
+  isNativeToken === false
+      ? tokenOutErc20Balance?.toBigInt()
+      : etherBalance?.toBigInt()
+
+  const readableTokenBalance = tokenOutBalance
+    ? Number(tokenOutBalance / BigInt(10 ** (tokenOut?.decimals - 4))) / 10000
     : 0;
 
   // Used to update the user about the status of their swap. Should abstract into a different
@@ -125,7 +120,7 @@ export default function Trade() {
     [key: string]: SwapStatusDisplayManager;
   } = {};
 
-  const activatedIsSrcTokenModal = useRef(true); // false means the Dest token's TokenModal is activated
+  const activatedIsTokenModal = useRef(true); // false means the Dest token's TokenModal is activated
   const privadexApi = useRef(new PrivaDexAPI(null, null));
 
   // We use the unchecked signer to get the transaction hash immediately.
@@ -155,35 +150,36 @@ export default function Trade() {
   const { sendTransaction, state: ethSendState } = useSendTransaction(txnOpts);
 
   const erc20Contract: any =
-    srcToken && srcToken.getAddressFromEncodedTokenName() !== "native"
+    tokenIn && tokenIn.getAddressFromEncodedTokenName() !== "native"
       ? (new Contract(
-          srcToken.getAddressFromEncodedTokenName(),
+          tokenIn.getAddressFromEncodedTokenName(),
           ERC20Interface
         ) as any)
       : null;
-  // console.log('srcToken ERC20 contract', erc20Contract);
+  // console.log('tokenIn ERC20 contract', erc20Contract);
   const { send, state: erc20State } = useContractFunction(
     erc20Contract,
     "transfer",
     txnOpts
   );
 
+  // 
+  // ----- Interactions ------ //
+  // 
+
   async function kickOffPhatContract(userToEscrowTxnHash: string) {
     let execPlanUuid = await privadexApi.current.startSwap(
       userToEscrowTxnHash,
-      srcChain,
-      destChain,
+      //chain,
       account,
       account, // TODO: need to let the user specify this
-      srcToken!.tokenNameEncoded,
-      destToken!.tokenNameEncoded,
+      tokenIn!.tokenNameEncoded,
+      tokenOut!.tokenNameEncoded,
       srcQuantity
     );
-    let capSrcChain = srcChain.charAt(0).toUpperCase() + srcChain.slice(1);
-    let capDestChain = destChain.charAt(0).toUpperCase() + destChain.slice(1);
-    let summaryStr = `${srcToken!.symbol} (${capSrcChain}) -> ${
-      destToken!.symbol
-    } (${capDestChain}) swap`;
+    let summaryStr = `${tokenIn!.symbol} -> ${
+      tokenOut!.symbol
+    } swap`;
     let timerId = setInterval(updateSwapStatus, 5000, execPlanUuid);
     execPlanUuidToSwapStatusDisplayManager[execPlanUuid] =
       new SwapStatusDisplayManager(timerId, summaryStr);
@@ -251,13 +247,13 @@ export default function Trade() {
 
   async function startSwap() {
     // Assume that the caller has performed the necessary checks
-    // (srcToken and destToken are set, we are on srcChain, and srcQuantity > 0)
+    // (tokenIn and tokenOut are set, we are on chain, and srcQuantity > 0)
     let escrowAddress = await privadexApi.current.escrowEthAddress();
-    let srcTokenAddress = srcToken!.getAddressFromEncodedTokenName();
+    let tokenInAddress = tokenIn!.getAddressFromEncodedTokenName();
     let amountIn = srcQuantity;
     let receipt;
     setDisabled(true);
-    if (srcTokenAddress === "native") {
+    if (tokenInAddress === "native") {
       receipt = await sendTransaction({
         to: escrowAddress,
         value: BigNumber.from(amountIn),
@@ -284,40 +280,42 @@ export default function Trade() {
 
   useEffect(() => {
     const timeOutId = setTimeout(async () => {
-      if (srcToken && destToken && srcQuantity > BigInt(0)) {
-        let [rawQuote, srcUsd, destUsd] = await privadexApi.current.quote(
-          srcChain,
-          destChain,
-          srcToken.tokenNameEncoded,
-          destToken.tokenNameEncoded,
+      if (tokenIn && tokenOut && srcQuantity > BigInt(0)) {
+        let [rawQuote, tokenInUsd, tokenOutUsd] = await privadexApi.current.quote(
+          tokenIn.tokenNameEncoded,
+          tokenOut.tokenNameEncoded,
           srcQuantity
         );
-        let quote = Number(rawQuote) / 10 ** destToken.decimals;
+        let quote = Number(rawQuote) / 10 ** tokenOut.decimals;
         // console.log("quote =", quote);
         setEstimatedQuote(quote);
-        setSrcUsd(srcUsd);
-        setDestUsd(destUsd);
+        setTokenInUsd(tokenInUsd);
+        setTokenOutUsd(tokenOutUsd);
       }
     }, 300);
     return () => clearTimeout(timeOutId);
-  }, [srcQuantity, srcToken, destToken, srcChain, destChain]);
+  }, [srcQuantity, tokenIn, tokenOut]);
 
   useEffect(() => {
     const timeOutId = setTimeout(async () => {
-      if (srcToken && destToken) {
-        let [rawQuote, _srcUsd, _destUsd] = await privadexApi.current.quote(
-          srcChain,
-          destChain,
-          srcToken.tokenNameEncoded,
-          destToken.tokenNameEncoded,
-          BigInt(10 ** srcToken.decimals)
+      if (tokenIn && tokenOut) {
+        let [rawQuote, _tokenInUsd, _tokenOutUsd] = await privadexApi.current.quote(
+          //chain,
+          tokenIn.tokenNameEncoded,
+          tokenOut.tokenNameEncoded,
+          BigInt(10 ** tokenIn.decimals)
         );
-        let quote = Number(rawQuote) / 10 ** destToken.decimals;
+        let quote = Number(rawQuote) / 10 ** tokenOut.decimals;
         setEstimatedOneSrcTokenQuote(quote);
       }
     }, 300);
     return () => clearTimeout(timeOutId);
-  }, [srcToken, destToken, srcChain, destChain]);
+  // }, [tokenIn, tokenOut, chain]);
+}, [tokenIn, tokenOut]);
+
+  // 
+  // ----- Interactions ------ //
+  // 
 
   const [isScreenSmallWidth] = useMediaQuery("(max-width: 325px)");
   const [isScreenFullWidth] = useMediaQuery("(min-width: 475px)");
@@ -334,22 +332,20 @@ export default function Trade() {
       <TokenModal
         isOpen={isOpen}
         onClose={onClose} // These are messy, consolidate into an object later
-        selectedChain={
-          activatedIsSrcTokenModal.current === true ? srcChain : destChain
-        }
+
         selectedToken={
-          activatedIsSrcTokenModal.current === true ? srcToken : destToken
+          activatedIsTokenModal.current === true ? tokenIn : tokenOut
         }
         otherToken={
-          activatedIsSrcTokenModal.current === true ? destToken : srcToken
+          activatedIsTokenModal.current === true ? tokenOut : tokenIn
         }
         setSelectedToken={
-          activatedIsSrcTokenModal.current === true
+         activatedIsTokenModal.current === true
             ? (token: Token) => {
                 setSrcQuantity(BigInt(0));
-                setSrcToken(token);
+                setTokenIn(token);
               }
-            : setDestToken
+            : setTokenOut
         }
       />
 
@@ -387,9 +383,9 @@ export default function Trade() {
           <Box>
             <TokenSelect
               /*image={window.__imageSelected}*/ openTokenModal={onOpen}
-              token={srcToken}
+              token={tokenIn}
               setActivatedButton={() =>
-                (activatedIsSrcTokenModal.current = true)
+                (activatedIsTokenModal.current = true)
               }
               disabled={disabled}
             />
@@ -404,8 +400,8 @@ export default function Trade() {
               color={colorMode === "dark" ? "rgb(180,180,180)" : "gray"}
               fontSize="xs"
             >
-              {srcTokenBalance !== undefined &&
-                `Balance: ${readableSrcTokenBalance} ${srcToken?.symbol}`}
+              {tokenInBalance !== undefined &&
+                `Balance: ${readableSrcTokenBalance} ${tokenIn?.symbol}`}
             </Text>
             <HStack spacing={1} mt="2rem" ml="-1.25rem">
               <Input
@@ -422,13 +418,13 @@ export default function Trade() {
                 color={colorMode === "dark" ? "white" : "black"}
                 value={readableSrcQuantity}
                 onChange={async function (e) {
-                  if (e.target.value !== undefined && srcToken !== null) {
+                  if (e.target.value !== undefined && tokenIn !== null) {
                     setSrcQuantity(
-                      BigInt(10 ** Math.max(0, srcToken.decimals - 10)) *
+                      BigInt(10 ** Math.max(0, tokenIn.decimals - 10)) *
                         BigInt(
                           Math.floor(
                             Number(e.target.value) *
-                              10 ** Math.min(srcToken.decimals, 10)
+                              10 ** Math.min(tokenIn.decimals, 10)
                           )
                         )
                     );
@@ -440,11 +436,11 @@ export default function Trade() {
                 }}
                 disabled={disabled}
               />
-              {srcQuantity !== srcTokenBalance && (
+              {srcQuantity !== tokenInBalance && (
                 <Button
                   onClick={() => {
-                    if (srcTokenBalance) {
-                      setSrcQuantity(srcTokenBalance);
+                    if (tokenInBalance) {
+                      setSrcQuantity(tokenInBalance);
                     }
                   }}
                 >
@@ -460,7 +456,7 @@ export default function Trade() {
               color={colorMode === "dark" ? "rgb(180,180,180)" : "gray"}
               fontSize="s"
             >
-              ${srcUsd.toFixed(4)}
+              ${tokenInUsd.toFixed(4)}
             </Text>
           </Box>
         </Flex>
@@ -506,9 +502,9 @@ export default function Trade() {
           <Box>
             <TokenSelect
               /*image={window.__imageSelected2}*/ openTokenModal={onOpen}
-              token={destToken}
+              token={tokenOut}
               setActivatedButton={() =>
-                (activatedIsSrcTokenModal.current = false)
+                (activatedIsTokenModal.current = false)
               }
               disabled={disabled}
             />
@@ -523,8 +519,8 @@ export default function Trade() {
               color={colorMode === "dark" ? "rgb(180,180,180)" : "gray"}
               fontSize="xs"
             >
-              {destTokenBalance !== undefined &&
-                `Balance: ${readableDestTokenBalance} ${destToken?.symbol}`}
+              {tokenOutBalance !== undefined &&
+                `Balance: ${readableTokenBalance} ${tokenOut?.symbol}`}
             </Text>
             <Input
               mt="2rem"
@@ -549,21 +545,20 @@ export default function Trade() {
               color={colorMode === "dark" ? "rgb(180,180,180)" : "gray"}
               fontSize="s"
             >
-              ${destUsd.toFixed(4)}
+              ${tokenOutUsd.toFixed(4)}
             </Text>
           </Box>
         </Flex>
-        {srcToken && destToken && (
+        {tokenIn && tokenOut && (
           <Box color={colorMode === "dark" ? "white" : "black"}>
-            1 {srcToken.symbol} = {estimatedOneSrcTokenQuote.toFixed(4)}{" "}
-            {destToken.symbol}
+            1 {tokenIn.symbol} = {estimatedOneSrcTokenQuote.toFixed(4)}{" "}
+            {tokenOut.symbol}
           </Box>
         )}
         <SwapButton
-          srcChain={srcChain}
-          srcToken={srcToken}
-          areTokensSelected={srcToken !== null && destToken !== null}
-          areQuantitiesHighEnough={destUsd >= 0.1}
+          tokenIn={tokenIn}
+          areTokensSelected={tokenIn !== null && tokenOut !== null}
+          areQuantitiesHighEnough={tokenOutUsd >= 0.1}
           userHasSufficientBalance={userHasSufficientBalance}
           startSwap={startSwap}
           disabled={disabled}

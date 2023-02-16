@@ -4,8 +4,7 @@ import { Token } from "../data_models/Token";
 import { grayed_lavender, lavender, turquoise } from "../theme";
 
 type Props = {
-  srcChain: string;
-  srcToken: Token | null;
+  tokenIn: Token | null;
   areTokensSelected: boolean;
   areQuantitiesHighEnough: boolean;
   userHasSufficientBalance: boolean;
@@ -14,8 +13,7 @@ type Props = {
 };
 
 export default function SwapButton({
-  srcChain,
-  srcToken,
+  tokenIn,
   areTokensSelected,
   areQuantitiesHighEnough,
   userHasSufficientBalance,
@@ -27,20 +25,15 @@ export default function SwapButton({
   const { connector, isLoading } = useConnector();
 
   function funcIsCorrectChainId() {
-    // Should make Chain not a string later so I don't have to do this if-else logic here
-    if (srcChain === "zksync") {
       return chainId === ZkSyncTestnet.chainId;
-    }
-    return false;
+
   }
 
   const isCorrectChainId = funcIsCorrectChainId();
 
   async function handleConnectWallet() {
     activateBrowserWallet({ type: "metamask" });
-    if (srcChain === "zksync") {
-      await switchNetwork(ZkSyncTestnet.chainId);
-    }
+    await switchNetwork(ZkSyncTestnet.chainId);
   }
 
   return account && isCorrectChainId ? (
@@ -74,7 +67,7 @@ export default function SwapButton({
         >
           {areTokensSelected
             ? areQuantitiesHighEnough
-              ? `Insufficient ${srcToken?.symbol} balance`
+              ? `Insufficient ${tokenIn?.symbol} balance`
               : "Amount too low"
             : "Please select a token"}
         </Button>
@@ -94,10 +87,9 @@ export default function SwapButton({
       >
         {account === undefined
           ? "Connect Wallet"
-          : `Switch network to ${srcChain
-              .charAt(0)
-              .toUpperCase()}${srcChain.slice(1)}`}
+          : "Switch network to zkSync"}
       </Button>
     </Box>
   );
 }
+

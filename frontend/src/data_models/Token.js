@@ -22,19 +22,11 @@ export class Token {
   }
 
   getAddressFromEncodedTokenName() {
-    if (this.tokenNameEncoded === "native") {
-      return "native";
-    }
+    // if (this.tokenNameEncoded === "native") {
+    //   return "native";
+    // }
     if (this.tokenNameEncoded.slice(0, 11) === "erc20,addr=") {
       return this.tokenNameEncoded.slice(11);
-    }
-    if (this.tokenNameEncoded.slice(0, 10) === "xc20,addr=") {
-      return this.tokenNameEncoded.slice(10);
-    }
-    if (this.tokenNameEncoded.slice(0, 8) === "xc20,id=") {
-      let suffix = BigInt(this.tokenNameEncoded.slice(8)).toString(16);
-      // console.log("suffix =", tokenNameEncoded, tokenNameEncoded.slice(8), suffix);
-      return "0xffffffff" + "0".repeat(32 - suffix.length) + suffix;
     }
     return "";
   }

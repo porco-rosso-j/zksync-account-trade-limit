@@ -44,7 +44,7 @@ interface HHzkSyncFoundryConfig extends HardhatUserConfig {
 
 const config: HHzkSyncFoundryConfig = {
   zksolc: {
-        version: '1.2.1',
+        version: '1.3.1',
         compilerSource: 'binary',
         settings: {},
       },

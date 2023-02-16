@@ -23,7 +23,6 @@ import token_list from "./token_list.json";
 type Props = {
   isOpen: any;
   onClose: any;
-  selectedChain: string;
   selectedToken: Token | null;
   otherToken: Token | null;
   setSelectedToken: any;
@@ -32,7 +31,6 @@ type Props = {
 export default function TokenModal({
   isOpen,
   onClose,
-  selectedChain,
   selectedToken,
   otherToken,
   setSelectedToken,
@@ -43,17 +41,9 @@ export default function TokenModal({
   const { colorMode } = useColorMode();
   const [isScreenFullWidth] = useMediaQuery("(min-width: 500px)");
 
-
   function getChainExplorerLink(token_addr: string) {
-    if (token_addr === "native") {
-      return "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
-    }
-    if (selectedChain == "astar") {
-      return `https://blockscout.com/astar/address/${token_addr}`;
-    } else if (selectedChain == "moonbeam") {
-      return `https://moonscan.io/address/${token_addr}`;
-    }
-    return ""; // Should never reach here
+    return `https://goerli.explorer.zksync.io/address/${token_addr}`;
+    // return ""; // Should never reach here
   }
 
   function getTableStyle() {
@@ -148,10 +138,8 @@ export default function TokenModal({
                       let hidden = false;
                       let sameAsOtherToken =
                         token.getAddressFromEncodedTokenName() ===
-                          otherToken?.getAddressFromEncodedTokenName() &&
-                        token.chain === otherToken?.chain;
-                      let wrongChain = token.chain !== selectedChain;
-                      if (sameAsOtherToken || wrongChain) {
+                          otherToken?.getAddressFromEncodedTokenName() //&&
+                      if (sameAsOtherToken) {
                         hidden = true;
                       }
                       let href = getChainExplorerLink(token.getAddressFromEncodedTokenName());
@@ -167,7 +155,7 @@ export default function TokenModal({
                                 backgroundColor:
                                   token.getAddressFromEncodedTokenName() ===
                                   selectedToken?.getAddressFromEncodedTokenName()
-                                    ? "rgb(208,172,235)"
+                                    ? "rgb(130, 195, 147)"
                                     : "",
                               }}
                               hidden={hidden}

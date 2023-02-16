@@ -17,6 +17,3 @@
 	url = https://github.com/openzeppelin/openzeppelin-contracts
 	branch = master
     ignore =dirty
-[submodule "lib/aa-signature-checker"]
-	path = lib/aa-signature-checker
-	url = https://github.com/matter-labs/aa-signature-checker

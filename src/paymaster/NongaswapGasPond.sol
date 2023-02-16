@@ -272,7 +272,7 @@ contract NongaswapGasPond is
     }
 
     // ================================================================= //
-    //                        Paymaster Operations                       //
+    //                      Sponsor Configurations                       //
     // ================================================================= //
 
     // --- Paymaster's Registration --- //
