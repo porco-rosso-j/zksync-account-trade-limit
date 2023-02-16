@@ -115,13 +115,13 @@ contract GasPond is IPaymaster, GasPondStorage, GasPondTokenHelper {
 
     function _validateContract(bytes memory _data, address _to) internal view {
         if (contracts.isSponsoringEnabled) {
-            require(contracts.isValidContract[_to], "Invalid Contract");
+            require(contracts.isValidContract[_to], "NOT_SUPPORTED_CONTRACT");
 
             if (contracts.isFunctionSponsoringEnabled) {
                 bytes4 selector = BytesLib.getSelector(_data);
                 require(
                     contracts.isValidFunction[selector],
-                    "Invalid Function"
+                    "NOT_SUPPORTED_FUNCTION"
                 );
             }
         }

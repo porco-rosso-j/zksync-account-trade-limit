@@ -1,17 +1,51 @@
-pragma solidity ^0.8.0;
+//SPDX-License-Identifier: UNLICENSED
+pragma solidity ^0.8.11;
 
 library BytesLib {
-    function decodeERC20TransferArgs(bytes memory _calldata)
+    function decodeSwapArgs(bytes memory _calldata)
         internal
         pure
-        returns (address, uint256)
+        returns (
+            uint256,
+            address[] memory,
+            address,
+            uint256
+        )
     {
         bytes memory data = extractCalldata(_calldata);
-        (address recepient, uint256 amount) = abi.decode(
-            data,
-            (address, uint256)
-        );
-        return (recepient, amount);
+
+        (
+            uint256 amountOut,
+            address[] memory path,
+            address to,
+            uint256 deadline
+        ) = abi.decode(data, (uint256, address[], address, uint256));
+
+        return (amountOut, path, to, deadline);
+    }
+
+    function decodeSwapETHArgs(bytes memory _calldata)
+        internal
+        pure
+        returns (
+            uint256,
+            uint256,
+            address[] memory,
+            address,
+            uint256
+        )
+    {
+        bytes memory data = extractCalldata(_calldata);
+
+        (
+            uint256 amountOut,
+            uint256 amountMinIn,
+            address[] memory path,
+            address to,
+            uint256 deadline
+        ) = abi.decode(data, (uint256, uint256, address[], address, uint256));
+
+        return (amountOut, amountMinIn, path, to, deadline);
     }
 
     function extractCalldata(bytes memory _calldata)

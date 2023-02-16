@@ -28,6 +28,11 @@ abstract contract GasPondStorage {
         mapping(bytes4 => bool) isValidFunction;
     }
 
+    struct SponsorableSwapToken {
+        bool isEnabled;
+        mapping(address => bool) isValidToken;
+    }
+
     struct ERC20PaymentInfo {
         uint256 maxFee;
         uint256 minFee;
@@ -37,6 +42,7 @@ abstract contract GasPondStorage {
 
     Limit public limit;
     SponcorableOwnership public ownership;
+    SponsorableSwapToken public swaptokens;
     SponsorableContract public contracts;
 
     mapping(address => ERC20PaymentInfo) public erc20payments;

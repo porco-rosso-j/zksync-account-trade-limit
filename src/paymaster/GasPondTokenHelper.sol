@@ -5,6 +5,9 @@ import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
 import "zksync-contracts/openzeppelin/token/ERC20/IERC20.sol";
 import {ERC20, SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 
+import {IERC20} from "zksync-contracts/openzeppelin/token/ERC20/IERC20.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+
 contract GasPondTokenHelper {
     using SafeTransferLib for *;
     IUniswapV2Router02 public swapRouter;
@@ -84,5 +87,21 @@ contract GasPondTokenHelper {
     function _withdrawToken(address _token, uint256 _amount) internal {
         require(_amount != 0, "INVALID_AMOUNT");
         SafeTransferLib.safeTransfer(ERC20(_token), msg.sender, _amount);
+    }
+
+    function _getERC20Balance(address _token, address _from)
+        internal
+        view
+        returns (uint256)
+    {
+        return IERC20(_token).balanceOf(_from);
+    }
+
+    function _getERC721Balance(address _token, address _from)
+        internal
+        view
+        returns (uint256)
+    {
+        return IERC721(_token).balanceOf(_from);
     }
 }
