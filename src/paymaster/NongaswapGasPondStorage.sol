@@ -42,11 +42,9 @@ abstract contract NongaswapGasPondStorage {
         bool isEnabled;
     }
 
-    mapping(address => bool) isValidRouter;
-
-    //mapping(uint256 => Sponsor) public sponsors;
+    mapping(address => bool) public isValidRouter;
     mapping(address => Sponsor) public sponsors;
-    uint256 sponsorAddr;
+    uint256 public sponsorAddrCount;
 
     mapping(address => Limit) public limits; // sponsor => Limit
     mapping(address => SwapAssetSponsor) public swapAssetSponsors; // sponsor => SponsoredAsset

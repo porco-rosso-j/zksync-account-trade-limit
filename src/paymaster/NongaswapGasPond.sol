@@ -10,6 +10,10 @@ import {NongaswapGasPondStorage} from "./NongaswapGasPondStorage.sol";
 import {GasPondHelper} from "./GasPondHelper.sol";
 import {GasPondTokenHelper} from "./GasPondTokenHelper.sol";
 
+// interface NongaswapGasPond {
+//     function isValidRouter
+// }
+
 contract NongaswapGasPond is
     IPaymaster,
     NongaswapGasPondStorage,
@@ -279,13 +283,13 @@ contract NongaswapGasPond is
 
     function registerSponsor() public payable returns (uint256) {
         require(msg.value != 0, "INVALITE_AMOUNT");
-        uint256 newsponsorAddr = sponsorAddr + 1;
+        uint256 newsponsorAddrCount = sponsorAddrCount + 1;
 
-        sponsors[msg.sender].sponsorId = newsponsorAddr;
+        sponsors[msg.sender].sponsorId = newsponsorAddrCount;
         sponsors[msg.sender].ethBalance = msg.value;
 
-        sponsorAddr++;
-        return newsponsorAddr;
+        sponsorAddrCount++;
+        return newsponsorAddrCount;
     }
 
     // --- Paymaster's Limit Configurations --- //
@@ -476,6 +480,18 @@ contract NongaswapGasPond is
         uint256 BalanceAfterSwap = address(this).balance;
         sponsors[msg.sender].ethBalance += (BalanceAfterSwap -
             BalanceBeforeSwap);
+    }
+
+    // ================================================================= //
+    //                      Sponsor View Funcitons                       //
+    // ================================================================= //
+
+    function getSponsorETHBalance(address _sponsor)
+        public
+        view
+        returns (uint256)
+    {
+        return sponsors[_sponsor].ethBalance;
     }
 
     receive() external payable {

@@ -1,27 +1,28 @@
-import { utils, Wallet, Provider } from 'zksync-web3';
-import { ethers, BigNumber} from "ethers";
+// import { Wallet, Provider } from 'zksync-web3';
+import { ethers} from "ethers";
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { Deployer } from '@matterlabs/hardhat-zksync-deploy';
-import { rich_wallet } from "./utils/rich-wallet"
+// import { Deployer } from '@matterlabs/hardhat-zksync-deploy';
+// import { rich_wallet } from "./utils/rich-wallet"
 import { toBN } from "./utils/helper";
 import {deployUniswap} from './deployUniswap';
 
+// yarn hardhat deploy-zksync --script deploy/deployGasPond.ts
+
 // Deploy function
-export default async function (hre: HardhatRuntimeEnvironment) {
+export default async function deployGasPond (hre: HardhatRuntimeEnvironment) {
 
-    const weth_address = await deployUniswap(hre)
-
-    const provider = Provider.getDefaultProvider();
-    const wallet = new Wallet(rich_wallet[0].privateKey, provider);
-    const deployer = new Deployer(hre, wallet);
+    const [wallet, deployer, weth_address, router_address] = await deployUniswap(hre)
 
     const gaspondArtifact = await deployer.loadArtifact('NongaswapGasPond');
-    const gasopnd = await deployer.deploy(routerArtifact, [weth.address, weth.address])
-    console.log(`router address: ${router.address}`);
+    const gasopnd = await deployer.deploy(gaspondArtifact, [weth_address, router_address])
+    console.log(`gasopnd address: ${gasopnd.address}`);
 
-    const daiContract = new ethers.Contract(dai.address, gaspondArtifact.abi, wallet)
+    const gasopndContract = new ethers.Contract(gasopnd.address, gaspondArtifact.abi, wallet)
 
-    await (await wethContract.deposit({value:toBN("1000")})).wait()
-    console.log("WETH balance: ", (await wethContract.balanceOf(wallet.address)).toString())
+    await (await gasopndContract.addRouter(router_address)).wait()
+    await (await gasopndContract.registerSponsor({value:toBN("10")})).wait()
+
+    console.log("GasPond Sponsor ETH balance: ", (await gasopndContract.getSponsorETHBalance(wallet.address)).toString())
+    console.log("isValidRouter: ", (await gasopndContract.isValidRouter(router_address)))
 
 }

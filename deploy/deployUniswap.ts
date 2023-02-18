@@ -1,5 +1,5 @@
-import { utils, Wallet, Provider } from 'zksync-web3';
-import { ethers, BigNumber} from "ethers";
+import { Wallet, Provider } from 'zksync-web3';
+import { ethers} from "ethers";
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { Deployer } from '@matterlabs/hardhat-zksync-deploy';
 import { rich_wallet } from "./utils/rich-wallet"
@@ -26,7 +26,7 @@ export async function deployUniswap (hre: HardhatRuntimeEnvironment):Promise<any
    console.log(`dai address: ${dai.address}`);
 
     // Deploy Factory with pair bytecode
-    const factory = await deployer.deploy(factoryArtifact, [wallet.address],undefined, [pairArtifact.bytecode])
+    const factory = await deployer.deploy(factoryArtifact, [wallet.address], undefined, [pairArtifact.bytecode])
     console.log(`factory address: ${factory.address}`)
 
     // Deploy Router
@@ -44,12 +44,13 @@ export async function deployUniswap (hre: HardhatRuntimeEnvironment):Promise<any
     console.log("WETH balance: ", (await wethContract.balanceOf(wallet.address)).toString())
 
     // Mint DAI
-    await (await daiContract.mint(wallet.address, toBN("10000"))).wait()
+    await (await daiContract.mint(wallet.address, toBN("2000000"))).wait()
     console.log("DAI balance: ", (await daiContract.balanceOf(wallet.address)).toString())
 
     // Approve Router
     await (await wethContract.approve(router.address, ethers.constants.MaxUint256)).wait()
     await (await daiContract.approve(router.address, ethers.constants.MaxUint256)).wait()
+    console.log("here?")
 
     // Add Liquidity
     let tx = await routerContract.addLiquidity(
@@ -61,7 +62,7 @@ export async function deployUniswap (hre: HardhatRuntimeEnvironment):Promise<any
         0, 
         wallet.address, 
         ethers.constants.MaxUint256, 
-       {gasLimit: ethers.BigNumber.from(500000)}
+       {gasLimit: ethers.BigNumber.from(1000000)}
     )
     await tx.wait()
     const pair_address = await factoryContract.getPair(weth.address, dai.address)
@@ -69,5 +70,5 @@ export async function deployUniswap (hre: HardhatRuntimeEnvironment):Promise<any
     console.log("WETH in Pool: ", (await wethContract.balanceOf(pair_address)).toString())
     console.log("DAI in Pool: ", (await daiContract.balanceOf(pair_address)).toString())
 
-    return weth.address
+    return [provider, wallet, deployer, weth.address, router.address]
 }

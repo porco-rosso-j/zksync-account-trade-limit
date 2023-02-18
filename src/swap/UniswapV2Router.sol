@@ -19,8 +19,7 @@ contract UniswapV2Router is IUniswapV2Router {
     address public immutable override WETH;
 
     modifier ensure(uint256 deadline) {
-        // require(deadline >= block.timestamp, "UniswapV2Router: EXPIRED");
-        require(1 == 1, "UniswapV2Router: EXPIRED");
+        require(deadline >= block.timestamp, "UniswapV2Router: EXPIRED");
         _;
     }
 
