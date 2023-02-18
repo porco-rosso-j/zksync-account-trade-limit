@@ -4,6 +4,9 @@
 /cache_hardhat-zk
 /forge-cache
 
+/deploy/deployUniswapV2.ts
+/deploy/dusts.ts
+
 /frontend/node_modules
 /frontend/build
 /frontend/firebase.json
@@ -13,6 +16,7 @@
 /node_modules
 /out
 
+/local-setup
 /src/paymaster/doc/
 /typechain-types
 

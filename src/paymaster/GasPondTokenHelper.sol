@@ -1,8 +1,8 @@
 //SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.11;
+pragma solidity ^0.8.0;
 
-import "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router02.sol";
-import "zksync-contracts/openzeppelin/token/ERC20/IERC20.sol";
+import {IUniswapV2Router} from "@uniswap/interfaces/IUniswapV2Router.sol";
+import {IERC20} from "zksync-contracts/openzeppelin/token/ERC20/IERC20.sol";
 import {ERC20, SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
 
 import {IERC20} from "zksync-contracts/openzeppelin/token/ERC20/IERC20.sol";
@@ -10,13 +10,13 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract GasPondTokenHelper {
     using SafeTransferLib for *;
-    IUniswapV2Router02 public swapRouter;
+    IUniswapV2Router public swapRouter;
 
     address public weth;
 
     constructor(address _weth, address _swapRouter) {
         weth = _weth;
-        swapRouter = IUniswapV2Router02(_swapRouter);
+        swapRouter = IUniswapV2Router(_swapRouter);
     }
 
     function _getTokenFee(address _token, uint256 _eth_fee)
@@ -31,7 +31,7 @@ contract GasPondTokenHelper {
         // check liquidity pool
         // if no chainlink...?
 
-        uint256[] memory outputs = IUniswapV2Router02(swapRouter).getAmountsIn(
+        uint256[] memory outputs = IUniswapV2Router(swapRouter).getAmountsIn(
             _eth_fee,
             path
         );
@@ -65,12 +65,12 @@ contract GasPondTokenHelper {
         path[0] = address(_token);
         path[1] = address(weth);
 
-        uint256[] memory outputs = IUniswapV2Router02(swapRouter).getAmountsOut(
+        uint256[] memory outputs = IUniswapV2Router(swapRouter).getAmountsOut(
             _amount,
             path
         );
 
-        IUniswapV2Router02(swapRouter).swapExactTokensForETH(
+        IUniswapV2Router(swapRouter).swapExactTokensForETH(
             _amount,
             outputs[1],
             path,

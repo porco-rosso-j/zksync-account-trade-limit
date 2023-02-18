@@ -1,5 +1,5 @@
 //SPDX-License-Identifier: UNLICENSED
-pragma solidity 0.8.11;
+pragma solidity ^0.8.0;
 
 import {IPaymaster, ExecutionResult} from "zksync-contracts/interfaces/IPaymaster.sol";
 import {IPaymasterFlow} from "zksync-contracts/interfaces/IPaymasterFlow.sol";

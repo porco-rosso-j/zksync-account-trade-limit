@@ -24,8 +24,7 @@ const zkSyncTestnet =
         url: "http://localhost:3050",
         ethNetwork: "http://localhost:8545",
         zksync: true,
-      }
-    : {
+      } : {
         url: "https://zksync2-testnet.zksync.dev",
         ethNetwork: "https://eth-mainnet.g.alchemy.com/v2/" + process.env.ALCHEMY_API_KEY_GOERLI, // e.g. alchemy url
         zksync: true,
@@ -33,9 +32,9 @@ const zkSyncTestnet =
       };
 
 const compilers = [
-    {version: "0.4.0"}, {version: "0.5.16"}, {version: "0.6.0"}, {version: "0.6.6"},
-    {version: "0.6.12"}, {version: "0.8.0"}, {version: "0.8.1"}, {version: "0.8.11"},
+   {version: "0.8.1"}, {version: "0.8.4"}, {version: "0.8.11"},
 ]
+// {{version: "0.8.0"}, version: "0.4.0"}, {version: "0.5.16"}, {version: "0.6.0"}, {version: "0.6.3"}, {version: "0.6.6"}, {version: "0.6.12"}, 
 
 interface HHzkSyncFoundryConfig extends HardhatUserConfig {
     zksolc:any,

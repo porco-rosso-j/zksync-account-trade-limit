@@ -1,5 +1,5 @@
 import { Button, Box } from "@chakra-ui/react";
-import { useConnector, useEthers, ZkSyncTestnet } from "@usedapp/core";
+import { useConnector, useEthers, ZkSyncTestnet, Mainnet, Goerli, Localhost } from "@usedapp/core";
 import { Token } from "../data_models/Token";
 import { grayed_lavender, lavender, turquoise } from "../theme";
 
@@ -25,14 +25,16 @@ export default function SwapButton({
   const { connector, isLoading } = useConnector();
 
   function funcIsCorrectChainId() {
-      return chainId === ZkSyncTestnet.chainId;
-
+      return chainId === ZkSyncTestnet.chainId || Goerli.chainId || Mainnet.chainId || Localhost.chainId;
   }
 
   const isCorrectChainId = funcIsCorrectChainId();
 
   async function handleConnectWallet() {
     activateBrowserWallet({ type: "metamask" });
+    if (chainId == 1) {
+      
+    }
     await switchNetwork(ZkSyncTestnet.chainId);
   }
 

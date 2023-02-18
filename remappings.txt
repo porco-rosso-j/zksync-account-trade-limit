@@ -5,6 +5,5 @@ solmate/=lib/solmate/src/
 zksync-contracts/=lib/v2-testnet-contracts/l2/system-contracts/
 @openzeppelin/=lib/openzeppelin-contracts/
 
-@uniswap/v2-core/=src/swap/core/
-@uniswap/v2-periphery/=src/swap/periphery/
-@uniswap/lib/=src/swap/lib/
+
+@uniswap/=src/swap/

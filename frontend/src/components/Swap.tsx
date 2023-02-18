@@ -558,7 +558,7 @@ export default function Trade() {
         <SwapButton
           tokenIn={tokenIn}
           areTokensSelected={tokenIn !== null && tokenOut !== null}
-          areQuantitiesHighEnough={tokenOutUsd >= 0.1}
+          areQuantitiesHighEnough={tokenOutUsd >= 0}
           userHasSufficientBalance={userHasSufficientBalance}
           startSwap={startSwap}
           disabled={disabled}
