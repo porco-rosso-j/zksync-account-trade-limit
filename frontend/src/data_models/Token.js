@@ -22,9 +22,9 @@ export class Token {
   }
 
   getAddressFromEncodedTokenName() {
-    // if (this.tokenNameEncoded === "native") {
-    //   return "native";
-    // }
+    if (this.tokenNameEncoded === "native") {
+      return "native";
+    }
     if (this.tokenNameEncoded.slice(0, 11) === "erc20,addr=") {
       return this.tokenNameEncoded.slice(11);
     }

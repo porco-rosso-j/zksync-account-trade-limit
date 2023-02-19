@@ -21,6 +21,10 @@
     "jsx": "react-jsx"
   },
   "include": [
-    "src"
-, "scripts/drive_privadex_phat_contract.js"  ]
+    "src", 
+  //  "scripts/drive_privadex_phat_contract.js", 
+    // "src/common/usdDappMimic.ts", 
+    // "src/common/contracts/index.ts", 
+    // "src/common/address.ts" 
+   ]
 }

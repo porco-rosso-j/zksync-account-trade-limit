@@ -4,6 +4,8 @@ import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { Deployer } from '@matterlabs/hardhat-zksync-deploy';
 import { rich_wallet } from "./utils/rich-wallet"
 import { toBN } from "./utils/helper";
+// import * as dotenv from "dotenv";
+// dotenv.config();
 
 // Deploy function
 export async function deployUniswap (hre: HardhatRuntimeEnvironment):Promise<any> {
@@ -70,5 +72,15 @@ export async function deployUniswap (hre: HardhatRuntimeEnvironment):Promise<any
     console.log("WETH in Pool: ", (await wethContract.balanceOf(pair_address)).toString())
     console.log("DAI in Pool: ", (await daiContract.balanceOf(pair_address)).toString())
 
-    return [provider, wallet, deployer, weth.address, router.address]
+
+    // ---- User get DAI and Approve User
+    // const user = new Wallet(rich_wallet[1].privateKey, provider);
+    // await (await daiContract.mint(user.address, toBN("100000"))).wait()
+    // console.log("User DAI balance: ", (await daiContract.balanceOf(user.address)).toString())
+
+    // const _daiContract = new ethers.Contract(dai.address, daiArtifact.abi, user)
+    // await (await _daiContract.approve(router.address, ethers.constants.MaxUint256)).wait()
+    // ---- 
+
+    return [wallet, deployer, weth.address, router.address]
 }

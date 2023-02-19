@@ -1,15 +1,12 @@
-// import { Wallet, Provider } from 'zksync-web3';
 import { ethers} from "ethers";
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
-// import { Deployer } from '@matterlabs/hardhat-zksync-deploy';
-// import { rich_wallet } from "./utils/rich-wallet"
 import { toBN } from "./utils/helper";
 import {deployUniswap} from './deployUniswap';
 
 // yarn hardhat deploy-zksync --script deploy/deployGasPond.ts
 
 // Deploy function
-export default async function deployGasPond (hre: HardhatRuntimeEnvironment) {
+export async function deployGasPond (hre: HardhatRuntimeEnvironment) {
 
     const [wallet, deployer, weth_address, router_address] = await deployUniswap(hre)
 

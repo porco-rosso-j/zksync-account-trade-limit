@@ -19,7 +19,7 @@ function getRemappings() {
 }
 
 const zkSyncTestnet =
-  process.env.NODE_ENV == "test"
+  process.env.NODE_ENV == "local"
     ? {
         url: "http://localhost:3050",
         ethNetwork: "http://localhost:8545",
@@ -79,6 +79,7 @@ const config: HHzkSyncFoundryConfig = {
   paths: {
     sources: "./src", // Use ./src rather than ./contracts as Hardhat expects
     cache: "./cache", // Use a different cache for Hardhat than Foundry
+    // artifacts: ".frontend/"
   },
 };
 

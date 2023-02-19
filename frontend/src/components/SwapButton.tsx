@@ -1,23 +1,26 @@
 import { Button, Box } from "@chakra-ui/react";
-import { useConnector, useEthers, ZkSyncTestnet, Mainnet, Goerli, Localhost } from "@usedapp/core";
+import { useConnector, useEthers } from "@usedapp/core";
+import { ZkSyncLocal } from "../common/zkSyncLocal";
 import { Token } from "../data_models/Token";
 import { grayed_lavender, lavender, turquoise } from "../theme";
 
 type Props = {
   tokenIn: Token | null;
   areTokensSelected: boolean;
-  areQuantitiesHighEnough: boolean;
   userHasSufficientBalance: boolean;
+  userHasSufficcientAllowance: boolean;
   startSwap: any;
+  approveToken: any;
   disabled: boolean;
 };
 
 export default function SwapButton({
   tokenIn,
   areTokensSelected,
-  areQuantitiesHighEnough,
   userHasSufficientBalance,
+  userHasSufficcientAllowance,
   startSwap,
+  approveToken,
   disabled,
 }: Props) {
   const { account, chainId, switchNetwork, activateBrowserWallet, error } =
@@ -25,21 +28,21 @@ export default function SwapButton({
   const { connector, isLoading } = useConnector();
 
   function funcIsCorrectChainId() {
-      return chainId === ZkSyncTestnet.chainId || Goerli.chainId || Mainnet.chainId || Localhost.chainId;
+      return chainId === ZkSyncLocal.chainId;
   }
 
   const isCorrectChainId = funcIsCorrectChainId();
 
   async function handleConnectWallet() {
     activateBrowserWallet({ type: "metamask" });
-    if (chainId == 1) {
-      
-    }
-    await switchNetwork(ZkSyncTestnet.chainId);
+    await switchNetwork(ZkSyncLocal.chainId);
   }
 
   return account && isCorrectChainId ? (
-    areTokensSelected && areQuantitiesHighEnough && userHasSufficientBalance ? (
+    // areTokensSelected && areQuantitiesHighEnough && hasSufficientApproval ? (
+    areTokensSelected && userHasSufficientBalance ? (
+
+      userHasSufficcientAllowance ? ( 
       <Box mt="0.5rem">
         <Button
           onClick={() => {
@@ -56,7 +59,25 @@ export default function SwapButton({
           Swap
         </Button>
       </Box>
-    ) : (
+      ) : (
+        <Box mt="0.5rem">
+        <Button
+          onClick={() => {
+            approveToken();
+          }}
+          color="white"
+          bg={lavender}
+          width="100%"
+          p="1.62rem"
+          borderRadius="1.25rem"
+          _hover={{ bg: turquoise }}
+          disabled={disabled}
+        >
+          Approve {`${tokenIn?.symbol}`}
+        </Button>
+      </Box>
+      )
+      ) : (
       <Box mt="0.5rem">
         <Button
           color="white"
@@ -68,9 +89,9 @@ export default function SwapButton({
           disabled={disabled}
         >
           {areTokensSelected
-            ? areQuantitiesHighEnough
+          //  ? hasSufficientApproval
               ? `Insufficient ${tokenIn?.symbol} balance`
-              : "Amount too low"
+          //    : "Insufficient Approval"
             : "Please select a token"}
         </Button>
       </Box>
@@ -89,7 +110,7 @@ export default function SwapButton({
       >
         {account === undefined
           ? "Connect Wallet"
-          : "Switch network to zkSync"}
+          : "Switch network to zkSync Local"}
       </Button>
     </Box>
   );
