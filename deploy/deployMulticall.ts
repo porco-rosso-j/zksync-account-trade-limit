@@ -4,7 +4,7 @@ import { Deployer } from '@matterlabs/hardhat-zksync-deploy';
 import { rich_wallet } from "./utils/rich-wallet"
 
 // Deploy function
-export default async function deployMulticall (hre: HardhatRuntimeEnvironment) {
+export async function deployMulticall (hre: HardhatRuntimeEnvironment) {
 
     const provider = Provider.getDefaultProvider();
     const wallet = new Wallet(rich_wallet[0].privateKey, provider);

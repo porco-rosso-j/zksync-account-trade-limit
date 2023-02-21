@@ -1,7 +1,7 @@
 //SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {IPaymaster, ExecutionResult} from "zksync-contracts/interfaces/IPaymaster.sol";
+import {IPaymaster, ExecutionResult, PAYMASTER_VALIDATION_SUCCESS_MAGIC} from "zksync-contracts/interfaces/IPaymaster.sol";
 import {TransactionHelper, Transaction} from "zksync-contracts/libraries/TransactionHelper.sol";
 import {BOOTLOADER_FORMAL_ADDRESS} from "zksync-contracts/Constants.sol";
 
@@ -9,10 +9,6 @@ import {BytesLib} from "./lib/BytesLib.sol";
 import {NongaswapGasPondStorage} from "./NongaswapGasPondStorage.sol";
 import {GasPondHelper} from "./GasPondHelper.sol";
 import {GasPondTokenHelper} from "./GasPondTokenHelper.sol";
-
-// interface NongaswapGasPond {
-//     function isValidRouter
-// }
 
 contract NongaswapGasPond is
     IPaymaster,
@@ -77,6 +73,8 @@ contract NongaswapGasPond is
         onlyBootloader
         returns (bytes4 magic, bytes memory context)
     {
+        magic = PAYMASTER_VALIDATION_SUCCESS_MAGIC;
+
         require(_transaction.paymasterInput.length >= 4, "INVALID_BYTE_LENGTH");
 
         require(
@@ -267,12 +265,12 @@ contract NongaswapGasPond is
     function postTransaction(
         bytes calldata _context,
         Transaction calldata _transaction,
-        bytes32 _txHash,
-        bytes32 _suggestedSignedHash,
+        bytes32,
+        bytes32,
         ExecutionResult _txResult,
-        uint256 _maxRefundedErgs
-    ) external payable override onlyBootloader {
-        // this contract doesnt support any refund logic tho
+        uint256 _maxRefundedGas
+    ) external payable override {
+        // Refunds are not supported yet.
     }
 
     // ================================================================= //

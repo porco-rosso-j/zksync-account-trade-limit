@@ -14,13 +14,11 @@ import { SettingsIcon, ArrowDownIcon } from "@chakra-ui/icons";
 
 import {
   useEthers,
-  useSendTransaction,
   TransactionOptions,
   useContractFunction,
   ERC20Interface,
   useEtherBalance,
   useTokenBalance,
-  useConfig,
   useTokenAllowance
 } from "@usedapp/core";
 
@@ -31,14 +29,15 @@ import TokenSelect from "./TokenSelect";
 import TokenModal from "./Modal/TokenModal";
 import { Token } from "../common/Token";
 
-import { _quoteSwap, _swapETH, _swapToken} from "../common/swapRouter"
+import { _quoteSwap, _swapETH, _swapToken, _swapETHViaGasPond} from "../common/swapRouter"
 import {address} from "../common/address"
 import { ZkSyncLocal } from "../common/zkSyncLocal";
+
+import { Web3Provider, Provider } from 'zksync-web3';
 
 export default function Trade() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { account, chainId } = useEthers();
-  const config = useConfig();
   const { colorMode } = useColorMode();
 
   const [tokenIn, setTokenIn] = useState<Token | null>(null);
@@ -48,6 +47,11 @@ export default function Trade() {
   const [quotedExchangeRate, setQuotedExchangeRate] = useState<number>(0);
   const [disabled, setDisabled] = useState<boolean>(false);
 
+  const provider = new Provider(ZkSyncLocal.rpcUrl);
+  const signer = (new Web3Provider(window.ethereum)).getSigner();
+  const txnOpts: TransactionOptions | undefined = signer
+    ? { signer: signer }
+    : undefined;
 
   const readableTokenInQuantity =
     tokenInQuantity && tokenIn
@@ -117,15 +121,8 @@ export default function Trade() {
   : isNativeTokenIn === true;
 
   const activatedIsTokenModal = useRef(true); 
-  const provider = config.connectors.metamask.provider;
-  const signer = provider?.getSigner();
 
-  const txnOpts: TransactionOptions | undefined = signer
-    ? { signer: signer }
-    : undefined;
-
-  const { sendTransaction, state: ethSendState } = useSendTransaction(txnOpts);
-
+  // ERC20 & Approval 
   const erc20Contract: any =
     tokenIn && tokenIn.getAddressFromEncodedTokenName() !== "native"
       ? (new Contract(
@@ -134,50 +131,52 @@ export default function Trade() {
         ) as any)
       : null;
 
-  // 
-  // ----- Interactions ------ //
-  // 
-
-  const { send, state: erc20State } = useContractFunction(
+  const { send: erc20Send, state: erc20State } = useContractFunction(
     erc20Contract,
     "approve",
     txnOpts
   );
 
   async function approveToken() {
-    send(address.router, constants.MaxUint256)
+    erc20Send(address.router, constants.MaxUint256)
   }
 
   async function startSwap() {
     let tokenInAddress = tokenIn!.getAddressFromEncodedTokenName();
     let tokenOutAddress = tokenOut!.getAddressFromEncodedTokenName();
-    //let amountIn = tokenInQuantity;
     let receipt;
     let tx;
 
-    // console.log("tokenInAddress:", tokenInAddress)
-    // console.log("tokenOutAddress:", tokenOutAddress)
-
     setDisabled(true);
     if (tokenInAddress === "native") {
-      tx = await _swapETH(
-        tokenOutAddress, 
-        tokenInQuantity,
-        account
-        )
+      // tx = await _swapETH(
+      //   tokenOutAddress, 
+      //   tokenInQuantity,
+      //   account
+      //   )
+      console.log("Gaspond ETH Balance Before: ", (await provider.getBalance(address.gaspond)).toString())
 
-      receipt = await sendTransaction(tx)
+      tx = await _swapETHViaGasPond(
+          signer,
+          tokenOutAddress, 
+          tokenInQuantity,
+          account
+      )
+
+      receipt = await tx.wait()
+      console.log("Gaspond ETH Balance After: ",  (await provider.getBalance(address.gaspond)).toString())
 
     } else if (tokenOutAddress == "native") {
-      // need approval
       tx = await _swapToken(
         tokenInAddress,
         tokenInQuantity,
         account
         )
-      receipt = await sendTransaction(tx)
+
+      receipt= await tx.wait()
     }
     console.log("swap transaction receipt =", receipt);
+    
     setDisabled(false);
   }
 
