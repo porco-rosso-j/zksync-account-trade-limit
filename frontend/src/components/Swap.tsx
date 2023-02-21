@@ -29,7 +29,7 @@ import { BigNumber, constants, Contract } from 'ethers';
 import SwapButton from "./SwapButton";
 import TokenSelect from "./TokenSelect";
 import TokenModal from "./Modal/TokenModal";
-import { Token } from "../data_models/Token";
+import { Token } from "../common/Token";
 
 import { _quoteSwap, _swapETH, _swapToken} from "../common/swapRouter"
 import {address} from "../common/address"
@@ -41,12 +41,13 @@ export default function Trade() {
   const config = useConfig();
   const { colorMode } = useColorMode();
 
-  const [estimatedQuote, setEstimatedQuote] = useState<number>(0);
-  const [quotedExchangeRate, setQuotedExchangeRate] = useState<number>(0);
   const [tokenIn, setTokenIn] = useState<Token | null>(null);
   const [tokenOut, setTokenOut] = useState<Token | null>(null);
-  const [disabled, setDisabled] = useState<boolean>(false);
   const [tokenInQuantity, setTokenInQuantity] = useState<BigInt>(BigInt(0));
+  const [estimatedQuote, setEstimatedQuote] = useState<number>(0);
+  const [quotedExchangeRate, setQuotedExchangeRate] = useState<number>(0);
+  const [disabled, setDisabled] = useState<boolean>(false);
+
 
   const readableTokenInQuantity =
     tokenInQuantity && tokenIn

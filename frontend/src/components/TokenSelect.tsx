@@ -1,6 +1,6 @@
 import {Button, Box, Image, useDisclosure, useColorMode} from "@chakra-ui/react";
 import {ChevronDownIcon} from "@chakra-ui/icons";
-import { Token } from "../data_models/Token";
+import { Token } from "../common/Token";
 import { lavender, turquoise } from "../theme";
 
 type Props = {

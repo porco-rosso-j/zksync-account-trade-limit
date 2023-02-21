@@ -1,4 +1,4 @@
-import {Token} from '../data_models/Token';
+import {Token} from '../common/Token';
 
 
 export declare global {

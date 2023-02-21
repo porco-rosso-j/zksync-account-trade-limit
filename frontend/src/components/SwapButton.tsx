@@ -1,7 +1,7 @@
 import { Button, Box } from "@chakra-ui/react";
 import { useConnector, useEthers } from "@usedapp/core";
 import { ZkSyncLocal } from "../common/zkSyncLocal";
-import { Token } from "../data_models/Token";
+import { Token } from "../common/Token";
 import { grayed_lavender, lavender, turquoise } from "../theme";
 
 type Props = {
@@ -79,7 +79,7 @@ export default function SwapButton({
         </Button>
       </Box>
       )
-      ) : (
+    ) : (
       <Box mt="0.5rem">
         <Button
           color="white"

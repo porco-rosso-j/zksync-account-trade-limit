@@ -17,7 +17,7 @@ import {
 // Can use later to make the table pretty but requires more work
 // import ReactTable from "react-table";
 import { useEffect, useState, Fragment } from "react";
-import { Token } from "../../data_models/Token";
+import { Token } from "../../common/Token";
 import token_list from "./token_list.json";
 
 type Props = {

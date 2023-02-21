@@ -3,3 +3,5 @@ build
 .firebase
 
 .DS_Store
+
+yarn-error.log
