@@ -3,36 +3,6 @@ import { Wallet, Provider } from 'zksync-web3';
 import { UniswapV2Router } from "../../../typechain-types"
 import {default as routerArtifact} from "artifacts/src/swap/UniswapV2Router.sol/UniswapV2Router.json"
 import {address} from "./address"
-import { AnySoaRecord } from 'dns';
-export function _useEtherBalance(account:string | undefined):BigNumber {
-    // let balance:BigNumber|undefined;
-
-    // getEtherBalance(account).then((value) => {
-    //     balance = value;
-    // })
-    //return balance as BigNumber;
-    // let balance = Promise.resolve(getEtherBalance(account))
-    let result:BigNumber|undefined;
-    // balance.then((value) => {
-    //     result = value;
-    //     console.log("result in : ", result)
-    // })
-    // console.log("result out : ", result)
-    return result as BigNumber;
-
-}
-
-export async function getEtherBalance(account:string | undefined):Promise<BigNumber> {
-    const provider = Provider.getDefaultProvider();
-    const result = await provider.getBalance(account as string)
-    return result;
-}
-
-// async function getEtherBalance(account: string):Promise<BigNumber> {
-//     const provider = Provider.getDefaultProvider();
-//     const balance:BigNumber = await provider.getBalance(account)
-//     return balance;
-// }
 
 let router: UniswapV2Router
 

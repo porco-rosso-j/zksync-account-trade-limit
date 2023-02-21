@@ -7,6 +7,7 @@ import { grayed_lavender, lavender, turquoise } from "../theme";
 type Props = {
   tokenIn: Token | null;
   areTokensSelected: boolean;
+  isNonZeroQuantity: boolean;
   userHasSufficientBalance: boolean;
   userHasSufficcientAllowance: boolean;
   startSwap: any;
@@ -17,6 +18,7 @@ type Props = {
 export default function SwapButton({
   tokenIn,
   areTokensSelected,
+  isNonZeroQuantity,
   userHasSufficientBalance,
   userHasSufficcientAllowance,
   startSwap,
@@ -40,7 +42,7 @@ export default function SwapButton({
 
   return account && isCorrectChainId ? (
     // areTokensSelected && areQuantitiesHighEnough && hasSufficientApproval ? (
-    areTokensSelected && userHasSufficientBalance ? (
+    areTokensSelected && userHasSufficientBalance && isNonZeroQuantity ? (
 
       userHasSufficcientAllowance ? ( 
       <Box mt="0.5rem">
