@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom";
 import App from "./App";
-import { DAppProvider, Config, MetamaskConnector, ZkSyncTestnet } from "@usedapp/core";
+import { DAppProvider, Config, MetamaskConnector } from "@usedapp/core";
 import { ColorModeScript } from "@chakra-ui/react";
 import theme from './theme'
 import { ZkSyncLocal } from "./common/zkSyncLocal";

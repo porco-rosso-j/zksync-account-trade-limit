@@ -29,10 +29,17 @@ import TokenSelect from "./TokenSelect";
 import TokenModal from "./Modal/TokenModal";
 import { Token } from "../common/Token";
 
-import { _quoteSwap, _swapETH, _swapToken, _swapETHViaGasPond} from "../common/swapRouter"
-import {address} from "../common/address"
-import { ZkSyncLocal } from "../common/zkSyncLocal";
+import {
+  _quoteSwap, 
+  _swapETH, 
+  _swapToken, 
+  _swapETHSponsored, 
+  _swapTokenSponsored
+} from "../common/swapRouter"
 
+import { _isSponsoredPath } from "../common/gasPond"
+import {address, sponsors} from "../common/address"
+import { ZkSyncLocal } from "../common/zkSyncLocal";
 import { Web3Provider, Provider } from 'zksync-web3';
 
 export default function Trade() {
@@ -43,6 +50,7 @@ export default function Trade() {
   const [tokenIn, setTokenIn] = useState<Token | null>(null);
   const [tokenOut, setTokenOut] = useState<Token | null>(null);
   const [tokenInQuantity, setTokenInQuantity] = useState<BigInt>(BigInt(0));
+
   const [estimatedQuote, setEstimatedQuote] = useState<number>(0);
   const [quotedExchangeRate, setQuotedExchangeRate] = useState<number>(0);
   const [disabled, setDisabled] = useState<boolean>(false);
@@ -84,7 +92,7 @@ export default function Trade() {
       ? etherBalance?.toBigInt()
       : undefined;
 
-  const readableSrcTokenBalance = tokenInBalance
+  const readableTokenINBalance = tokenInBalance
     ? Number(tokenInBalance / BigInt(10 ** (tokenIn?.decimals - 4))) / 10000
     : 0;
 
@@ -120,18 +128,30 @@ export default function Trade() {
   ? tokenInAllowance?.toBigInt() >= tokenInQuantity
   : isNativeTokenIn === true;
 
+  const pathSponsored = _isSponsoredPath(
+   isNativeTokenIn === false
+     ? tokenIn?.getAddressFromEncodedTokenName() : address.weth, 
+   isNativeTokenOut === false
+     ? tokenOut?.getAddressFromEncodedTokenName() : address.weth,  
+    sponsors.sponsor1, 
+    account as string
+    )
+  
+  const isSwapSponsored = pathSponsored ? pathSponsored : false;
+
   const activatedIsTokenModal = useRef(true); 
+
 
   // ERC20 & Approval 
   const erc20Contract: any =
-    tokenIn && tokenIn.getAddressFromEncodedTokenName() !== "native"
-      ? (new Contract(
-          tokenIn.getAddressFromEncodedTokenName(),
-          ERC20Interface
-        ) as any)
-      : null;
+  tokenIn && tokenIn.getAddressFromEncodedTokenName() !== "native"
+    ? (new Contract(
+        tokenIn.getAddressFromEncodedTokenName(),
+        ERC20Interface
+      ) as any)
+    : null;
 
-  const { send: erc20Send, state: erc20State } = useContractFunction(
+  const { send: erc20Send } = useContractFunction(
     erc20Contract,
     "approve",
     txnOpts
@@ -149,39 +169,43 @@ export default function Trade() {
 
     setDisabled(true);
     if (tokenInAddress === "native") {
-      // tx = await _swapETH(
-      //   tokenOutAddress, 
-      //   tokenInQuantity,
-      //   account
-      //   )
-      console.log("Gaspond ETH Balance Before: ", (await provider.getBalance(address.gaspond)).toString())
-
-      tx = await _swapETHViaGasPond(
+      if (isSwapSponsored) {
+        tx = await _swapETHSponsored(
           signer,
           tokenOutAddress, 
           tokenInQuantity,
           account
-      )
-
-      receipt = await tx.wait()
-      console.log("Gaspond ETH Balance After: ",  (await provider.getBalance(address.gaspond)).toString())
+        )
+      } else {
+        tx = await _swapETH(
+          tokenOutAddress, 
+          tokenInQuantity,
+          account
+        )
+      }
 
     } else if (tokenOutAddress == "native") {
-      tx = await _swapToken(
-        tokenInAddress,
-        tokenInQuantity,
-        account
+      if (isSwapSponsored) {
+        tx = await _swapTokenSponsored(
+          signer,
+          tokenInAddress,
+          tokenInQuantity,
+          account
+        ) 
+      } else {
+        tx = await _swapToken(
+          tokenInAddress,
+          tokenInQuantity,
+          account
         )
-
-      receipt= await tx.wait()
+      } 
     }
+    receipt= await tx.wait()
     console.log("swap transaction receipt =", receipt);
-    
     setDisabled(false);
   }
 
   useEffect(() => {
-    console.log("tokenInAllowance:", tokenInAllowance);
     const timeOutId = setTimeout(async () => {
       if (tokenIn && tokenOut && tokenInQuantity > BigInt(0)) {
         let rawQuote = await _quoteSwap(
@@ -212,11 +236,6 @@ export default function Trade() {
     return () => clearTimeout(timeOutId);
 }, [tokenIn, tokenOut]);
 
-  // 
-  // ----- Interactions ------ //
-  // 
-
-  const [isScreenSmallWidth] = useMediaQuery("(max-width: 325px)");
   const [isScreenFullWidth] = useMediaQuery("(min-width: 475px)");
 
   return (
@@ -257,6 +276,7 @@ export default function Trade() {
       >
         <Text color={colorMode === "dark" ? "white" : "black"} fontWeight="500">
           Swap from:
+          {console.log("isSwapSponsored: ", isSwapSponsored)}
         </Text>
         <SettingsIcon
           fontSize="1.25rem"
@@ -300,7 +320,7 @@ export default function Trade() {
               fontSize="xs"
             >
               {tokenInBalance !== undefined &&
-                `Balance: ${readableSrcTokenBalance} ${tokenIn?.symbol}`}
+                `Balance: ${readableTokenINBalance} ${tokenIn?.symbol}`}
             </Text>
             <HStack spacing={1} mt="2rem" ml="-1.25rem">
               <Input
@@ -368,14 +388,25 @@ export default function Trade() {
             Swap to:
           </Text>
           <ArrowDownIcon
-            bg={colorMode === "dark" ? "rgb(41,41,41)" : "rgb(247, 248, 250)"}
-            color="rgb(128,128,128)"
-            // position={"absolute"}
-            top={"0rem"}
-            h="1.5rem"
-            width="1.62rem"
-            borderRadius="0.75rem"
-          />
+                  bg={colorMode === "dark" ? "rgb(41,41,41)" : "rgb(247, 248, 250)"}
+                  color="rgb(128,128,128)"
+                  // position={"absolute"}
+                  top={"0rem"}
+                  h="1.5rem"
+                  width="1.62rem"
+                  borderRadius="0.75rem"
+                  onClick={() => {
+                    let token: Token | null = tokenIn;
+                    let tokenAmt = tokenInQuantity;
+                    
+                    setTokenIn(tokenOut)
+                    setTokenOut(token)
+                    
+                    console.log("tokenAmt: ", tokenAmt)
+                    console.log("estimatedQuote: ", estimatedQuote)
+                  }}
+            />
+
         </Flex>
         <Flex
           alignItems="center"
@@ -438,6 +469,7 @@ export default function Trade() {
           tokenIn={tokenIn}
           areTokensSelected={tokenIn !== null && tokenOut !== null}
           isNonZeroQuantity={tokenInQuantity != BigInt(0)}
+          isSwapSponsored={isSwapSponsored}
           userHasSufficientBalance={userHasSufficientBalance}
           userHasSufficcientAllowance={userHasSufficcientAllowance}
           startSwap={startSwap}

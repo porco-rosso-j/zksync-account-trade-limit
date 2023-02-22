@@ -8,6 +8,7 @@ type Props = {
   tokenIn: Token | null;
   areTokensSelected: boolean;
   isNonZeroQuantity: boolean;
+  isSwapSponsored: boolean;
   userHasSufficientBalance: boolean;
   userHasSufficcientAllowance: boolean;
   startSwap: any;
@@ -19,6 +20,7 @@ export default function SwapButton({
   tokenIn,
   areTokensSelected,
   isNonZeroQuantity,
+  isSwapSponsored,
   userHasSufficientBalance,
   userHasSufficcientAllowance,
   startSwap,
@@ -27,12 +29,11 @@ export default function SwapButton({
 }: Props) {
   const { account, chainId, switchNetwork, activateBrowserWallet, error } =
     useEthers();
-  const { connector, isLoading } = useConnector();
 
   function funcIsCorrectChainId() {
       return chainId === ZkSyncLocal.chainId;
   }
-
+  
   const isCorrectChainId = funcIsCorrectChainId();
 
   async function handleConnectWallet() {
@@ -43,24 +44,42 @@ export default function SwapButton({
   return account && isCorrectChainId ? (
     // areTokensSelected && areQuantitiesHighEnough && hasSufficientApproval ? (
     areTokensSelected && userHasSufficientBalance && isNonZeroQuantity ? (
-
       userHasSufficcientAllowance ? ( 
-      <Box mt="0.5rem">
-        <Button
-          onClick={() => {
-            startSwap();
-          }}
-          color="white"
-          bg={lavender}
-          width="100%"
-          p="1.62rem"
-          borderRadius="1.25rem"
-          _hover={{ bg: turquoise }}
-          disabled={disabled}
-        >
-          Swap
-        </Button>
-      </Box>
+        isSwapSponsored ? (
+          <Box mt="0.5rem">
+          <Button
+            onClick={() => {
+              startSwap();
+            }}
+            color="white"
+            bg={lavender}
+            width="100%"
+            p="1.62rem"
+            borderRadius="1.25rem"
+            _hover={{ bg: turquoise }} // "rgb(147,196,125)"
+            disabled={disabled}
+          >
+            Swap {`( GAS FREE )`}
+          </Button>
+        </Box>
+        ) : (
+          <Box mt="0.5rem">
+          <Button
+            onClick={() => {
+              startSwap();
+            }}
+            color="white"
+            bg={lavender}
+            width="100%"
+            p="1.62rem"
+            borderRadius="1.25rem"
+            _hover={{ bg: turquoise }}
+            disabled={disabled}
+          >
+            Swap
+          </Button>
+        </Box>
+        )
       ) : (
         <Box mt="0.5rem">
         <Button

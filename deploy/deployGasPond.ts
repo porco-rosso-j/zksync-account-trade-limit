@@ -12,31 +12,34 @@ import { address } from "../frontend/src/common/address"
 
 // Deploy function
 export default async function deployGasPond (hre: HardhatRuntimeEnvironment) {
-    // const provider = Provider.getDefaultProvider();
-    // const wallet = new Wallet(rich_wallet[0].privateKey, provider);
-    // const deployer = new Deployer(hre, wallet);
+    const provider = Provider.getDefaultProvider();
+    const wallet = new Wallet(rich_wallet[0].privateKey, provider);
+    const deployer = new Deployer(hre, wallet);
 
-    // const weth_address = address.weth
-    // const router_address = address.router
+    const weth_address = address.weth
+    const router_address = address.router
 
-    const [wallet, deployer, weth_address, router_address] = await deployUniswap(hre)
+    // const [wallet, deployer, weth_address, router_address] = await deployUniswap(hre)
 
     // Deploy Multicall
-    const multicallArtifact = await deployer.loadArtifact('Multicall');
-    const multicall = await deployer.deploy(multicallArtifact)
-    console.log(`multicall address: ${multicall.address}`);
+    // const multicallArtifact = await deployer.loadArtifact('Multicall');
+    // const multicall = await deployer.deploy(multicallArtifact)
+    // console.log(`multicall address: ${multicall.address}`);
 
     // Deploy GasPond
-    const gaspondArtifact = await deployer.loadArtifact('NongaswapGasPond');
-    const gasopnd = await deployer.deploy(gaspondArtifact, [weth_address, router_address])
-    console.log(`gasopnd address: ${gasopnd.address}`);
+    // const gaspondArtifact = await deployer.loadArtifact('NongaswapGasPond');
+    const gaspondArtifact = await deployer.loadArtifact('NongaswapGPV2');
+    //const gasopnd = await deployer.deploy(gaspondArtifact, [weth_address, router_address])
+    //console.log(`gasopnd address: ${gasopnd.address}`);
 
-    const gasopndContract = new ethers.Contract(gasopnd.address, gaspondArtifact.abi, wallet)
+    const gasopndContract = new ethers.Contract(address.gaspond, gaspondArtifact.abi, wallet)
 
-    await (await gasopndContract.addRouter(router_address)).wait()
-    await (await gasopndContract.registerSponsor({value:toBN("10")})).wait()
+    // await (await gasopndContract.addRouter(router_address)).wait()
+    // await (await gasopndContract.registerSponsor({value:toBN("10")})).wait()
+    // await (await gasopndContract.setSponsoredSwapAsset([weth_address])).wait()
 
     console.log("GasPond Sponsor ETH balance: ", (await gasopndContract.getSponsorETHBalance(wallet.address)).toString())
     console.log("isValidRouter: ", (await gasopndContract.isValidRouter(router_address)))
+    console.log("isAssetSponsored:" ,  (await gasopndContract.isSponsoredPath([address.dai, weth_address], wallet.address)))
 
 }

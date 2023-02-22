@@ -52,7 +52,6 @@ export async function deployUniswap (hre: HardhatRuntimeEnvironment):Promise<any
     // Approve Router
     await (await wethContract.approve(router.address, ethers.constants.MaxUint256)).wait()
     await (await daiContract.approve(router.address, ethers.constants.MaxUint256)).wait()
-    console.log("here?")
 
     // Add Liquidity
     let tx = await routerContract.addLiquidity(

@@ -8,14 +8,14 @@
     },
     {
         "chain": "zksync",
-        "token_name_encoded": "erc20,addr=0x111C3E89Ce80e62EE88318C2804920D4c96f92bb",
+        "token_name_encoded": "erc20,addr=0x60Aa68f9D0D736B9a0a716d04323Ba3b22602840",
         "symbol": "WETH",
         "name": "Wrapped ETH",
         "decimals": 18
     },
     {
         "chain": "zksync",
-        "token_name_encoded": "erc20,addr=0x4B5DF730c2e6b28E17013A1485E5d9BC41Efe021",
+        "token_name_encoded": "erc20,addr=0x65C899B5fb8Eb9ae4da51D67E1fc417c7CB7e964",
         "symbol": "DAI",
         "name": "Dai Stablecoin",
         "decimals": 18

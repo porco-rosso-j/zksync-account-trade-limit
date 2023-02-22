@@ -3,16 +3,16 @@ pragma solidity ^0.8.0;
 
 import {IPaymaster, ExecutionResult, PAYMASTER_VALIDATION_SUCCESS_MAGIC} from "zksync-contracts/interfaces/IPaymaster.sol";
 import {TransactionHelper, Transaction} from "zksync-contracts/libraries/TransactionHelper.sol";
-import {BOOTLOADER_FORMAL_ADDRESS} from "zksync-contracts/Constants.sol";
+import {BOOTLOADER_FORMAL_ADDRESS, ETH_TOKEN_SYSTEM_CONTRACT} from "zksync-contracts/Constants.sol";
 
 import {BytesLib} from "./lib/BytesLib.sol";
-import {NongaswapGasPondStorage} from "./NongaswapGasPondStorage.sol";
+import {NongaswapGPV2Storage} from "./NongaswapGPV2Storage.sol";
 import {GasPondHelper} from "./helpers/GasPondHelper.sol";
 import {GasPondTokenHelper} from "./helpers/GasPondTokenHelper.sol";
 
-contract NongaswapGasPond is
+contract NongaswapGPV2 is
     IPaymaster,
-    NongaswapGasPondStorage,
+    NongaswapGPV2Storage,
     GasPondHelper,
     GasPondTokenHelper
 {
@@ -155,7 +155,9 @@ contract NongaswapGasPond is
         Transaction calldata _transaction,
         uint256 _eth_fee
     ) internal {
-        ERC20Payment memory erc20payment = erc20payments[_sponsorAddr][_token];
+        ERC20Payment memory erc20payment = sponsors[_sponsorAddr].erc20payments[
+            _token
+        ];
 
         require(erc20payment.isEnabled, "INVALID_TOKEN");
         require(erc20payment.minFee <= _allowance, "INVALID_ALLOWANCE");
@@ -180,20 +182,22 @@ contract NongaswapGasPond is
         bytes memory _data,
         uint256 _value
     ) internal view {
-        if (swapAssetSponsors[_sponsorAddr].isEnabled) {
-            SwapAssetSponsor storage swapAssetSponsor = swapAssetSponsors[
-                _sponsorAddr
-            ];
+        Sponsor storage sponsor = sponsors[_sponsorAddr];
 
-            address[] memory path;
-            if (_value != 0) {
-                (, , path, , ) = BytesLib.decodeSwapETHArgs(_data);
-            } else {
-                (, path, , ) = BytesLib.decodeSwapArgs(_data);
-            }
+        address[] memory path;
+        if (_value != 0) {
+            (, , path, , ) = BytesLib.decodeSwapETHArgs(_data);
+
             require(
-                swapAssetSponsor.isSupported[path[0]] ||
-                    swapAssetSponsor.isSupported[path[1]],
+                sponsor.isSupportedSwapAsset[weth] ||
+                    sponsor.isSupportedSwapAsset[path[1]],
+                "NOT_SUPPORTED_ASSET"
+            );
+        } else {
+            (, path, , ) = BytesLib.decodeSwapArgs(_data);
+            require(
+                sponsor.isSupportedSwapAsset[path[0]] ||
+                    sponsor.isSupportedSwapAsset[path[1]],
                 "NOT_SUPPORTED_ASSET"
             );
         }
@@ -209,23 +213,27 @@ contract NongaswapGasPond is
         address _sponsorAddr,
         address _ownedAsset
     ) internal view {
-        if (ownerships[_sponsorAddr][_ownedAsset].isEnabled) {
-            OwnershipSponsor memory ownership = ownerships[_sponsorAddr][
-                _ownedAsset
-            ];
+        if (_ownedAsset != address(0)) {
+            Sponsor storage sponsor = sponsors[_sponsorAddr];
 
-            if (ownership.isERC20) {
-                require(
-                    _getERC20Balance(_ownedAsset, _from) >=
-                        ownership.minOwnership,
-                    "OWNERSHIP_NOT_CONFIRMED"
-                );
-            } else {
-                require(
-                    _getERC721Balance(_ownedAsset, _from) >=
-                        ownership.minOwnership,
-                    "OWNERSHIP_NOT_CONFIRMED"
-                );
+            if (sponsor.ownerships[_ownedAsset].isEnabled) {
+                OwnershipSponsor memory ownership = sponsor.ownerships[
+                    _ownedAsset
+                ];
+
+                if (ownership.isERC20) {
+                    require(
+                        _getERC20Balance(_ownedAsset, _from) >=
+                            ownership.minOwnership,
+                        "OWNERSHIP_NOT_CONFIRMED"
+                    );
+                } else {
+                    require(
+                        _getERC721Balance(_ownedAsset, _from) >=
+                            ownership.minOwnership,
+                        "OWNERSHIP_NOT_CONFIRMED"
+                    );
+                }
             }
         }
         return;
@@ -236,8 +244,8 @@ contract NongaswapGasPond is
         uint256 _eth_fee,
         uint256 _maxGas,
         uint256 _maxFeePerGas
-    ) internal view {
-        Limit memory limit = limits[_sponsorAddr];
+    ) internal {
+        Limit storage limit = sponsors[_sponsorAddr].limit;
 
         if (!limit.isEnabled) return;
 
@@ -280,7 +288,7 @@ contract NongaswapGasPond is
     // --- Paymaster's Registration --- //
 
     function registerSponsor() public payable returns (uint256) {
-        require(msg.value != 0, "INVALITE_AMOUNT");
+        require(msg.value >= minimumETHBalalance, "INVALITE_AMOUNT");
         uint256 newsponsorAddrCount = sponsorAddrCount + 1;
 
         sponsors[msg.sender].sponsorId = newsponsorAddrCount;
@@ -305,7 +313,7 @@ contract NongaswapGasPond is
         require(_maxFeePerGas != 0, "INVALID_AMOUNT");
         require(_maxGas != 0, "INVALID_AMOUNT");
 
-        Limit storage limit = limits[msg.sender];
+        Limit storage limit = sponsors[msg.sender].limit;
 
         limit.limit = _limit;
         limit.available = _limit;
@@ -318,9 +326,9 @@ contract NongaswapGasPond is
 
     function removeLimit() public {
         require(_isValidSponsor(msg.sender), "INVALID_SPONSOR");
-        require(limits[msg.sender].isEnabled, "LIMIT_NOT_ENABLED");
 
-        Limit storage limit = limits[msg.sender];
+        Limit storage limit = sponsors[msg.sender].limit;
+        require(limit.isEnabled, "LIMIT_NOT_ENABLED");
 
         limit.limit = 0;
         limit.available = 0;
@@ -342,7 +350,9 @@ contract NongaswapGasPond is
         require(_asset != address(0), "INVALID_ASSET");
         require(_minOwnership != 0, "INVALID_AMOUNT");
 
-        OwnershipSponsor storage ownership = ownerships[msg.sender][_asset];
+        OwnershipSponsor storage ownership = sponsors[msg.sender].ownerships[
+            _asset
+        ];
 
         ownership.minOwnership = _minOwnership;
         ownership.isERC20 = _isERC20;
@@ -352,7 +362,12 @@ contract NongaswapGasPond is
     function removeOwnershipSponsor(address _asset) public {
         require(_isValidSponsor(msg.sender), "INVALID_SPONSOR");
         require(_asset != address(0), "INVALID_ASSET");
-        OwnershipSponsor storage ownership = ownerships[msg.sender][_asset];
+
+        OwnershipSponsor storage ownership = sponsors[msg.sender].ownerships[
+            _asset
+        ];
+
+        require(ownership.isEnabled, "NOT_ENABLED");
 
         ownership.minOwnership = 0;
         ownership.isERC20 = false;
@@ -373,7 +388,9 @@ contract NongaswapGasPond is
         require(_minFee != 0, "INVALID_AMOUNT");
         require(_discountRate != 0 && _discountRate <= 1e18, "INVALID_AMOUNT");
 
-        ERC20Payment storage erc20payment = erc20payments[msg.sender][_token];
+        ERC20Payment storage erc20payment = sponsors[msg.sender].erc20payments[
+            _token
+        ];
 
         erc20payment.maxFee = _maxFee;
         erc20payment.minFee = _minFee;
@@ -385,7 +402,9 @@ contract NongaswapGasPond is
         require(_isValidSponsor(msg.sender), "INVALID_SPONSOR");
         require(_token != address(0), "INVALID_TOKEN");
 
-        ERC20Payment storage erc20payment = erc20payments[msg.sender][_token];
+        ERC20Payment storage erc20payment = sponsors[msg.sender].erc20payments[
+            _token
+        ];
 
         require(!erc20payment.isEnabled, "NOT_ENABLED");
 
@@ -400,16 +419,16 @@ contract NongaswapGasPond is
     function setSponsoredSwapAsset(address[] memory _tokens) public {
         require(_isValidSponsor(msg.sender), "INVALID_SPONSOR");
 
-        SwapAssetSponsor storage swapAssetSponsor = swapAssetSponsors[
-            msg.sender
-        ];
+        Sponsor storage sponsor = sponsors[msg.sender];
 
         address token;
         for (uint256 i = 0; i < _tokens.length; i++) {
             token = _tokens[i];
+
             require(token != address(0), "INVALID_ADDRESS");
-            if (!swapAssetSponsor.isSupported[token]) {
-                swapAssetSponsor.isSupported[token] = true;
+
+            if (!sponsor.isSupportedSwapAsset[token]) {
+                sponsor.isSupportedSwapAsset[token] = true;
             }
         }
     }
@@ -417,12 +436,10 @@ contract NongaswapGasPond is
     function removeSponsoredSwapAsset(address _token) public {
         require(_isValidSponsor(msg.sender), "INVALID_SPONSOR");
 
-        SwapAssetSponsor storage swapAssetSponsor = swapAssetSponsors[
-            msg.sender
-        ];
+        Sponsor storage sponsor = sponsors[msg.sender];
 
-        require(swapAssetSponsor.isSupported[_token], "NOT_SUPPORTED");
-        swapAssetSponsor.isSupported[_token] = false;
+        require(sponsor.isSupportedSwapAsset[_token], "NOT_SUPPORTED");
+        sponsor.isSupportedSwapAsset[_token] = false;
     }
 
     // --- Paymaster's Token Operations --- //
@@ -445,7 +462,10 @@ contract NongaswapGasPond is
 
     function withdrawToken(address _token, uint256 _amount) public {
         require(_isValidSponsor(msg.sender), "INVALID_SPONSOR");
-        require(erc20payments[msg.sender][_token].isEnabled, "INVALID_TOKEN");
+        require(
+            sponsors[msg.sender].erc20payments[_token].isEnabled,
+            "INVALID_TOKEN"
+        );
         require(_amount != 0, "INVALID_AMOUNT");
         require(_getERC20Balance(_token, address(this)) != 0, "NO_BALANCE");
         _withdrawToken(_token, _amount);
@@ -490,6 +510,35 @@ contract NongaswapGasPond is
         returns (uint256)
     {
         return sponsors[_sponsor].ethBalance;
+    }
+
+    function isSponsoredPath(address[] memory path, address _sponsorAddr)
+        public
+        view
+        returns (bool)
+    {
+        bool result;
+        for (uint256 i = 0; i < path.length; i++) {
+            result = isSponsoredAsset(path[i], _sponsorAddr);
+            if (result) return true;
+        }
+
+        return false;
+    }
+
+    function isSponsoredAsset(address _token, address _sponsorAddr)
+        public
+        view
+        returns (bool)
+    {
+        Sponsor storage sponsor = sponsors[_sponsorAddr];
+        if (
+            sponsor.ethBalance >= minimumETHBalalance &&
+            sponsor.isSupportedSwapAsset[_token]
+        ) {
+            return true;
+        }
+        return false;
     }
 
     receive() external payable {
