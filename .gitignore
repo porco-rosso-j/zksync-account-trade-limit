@@ -6,6 +6,7 @@
 
 /deploy/deployUniswapV2.ts
 /deploy/dusts.ts
+/deploy/script.ts
 
 /frontend/artifacts-zk
 /frontend/node_modules

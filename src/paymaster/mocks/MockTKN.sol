@@ -1,8 +1,9 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
 import {MockERC20} from "solmate/test/utils/mocks/MockERC20.sol";
 
-contract MockDAI is MockERC20 {
+contract MockTKN is MockERC20 {
     constructor(
         string memory _name,
         string memory _symbol,

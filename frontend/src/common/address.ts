@@ -1,38 +1,17 @@
+import { rich_wallet } from "./utils/rich-wallet"
 
 export const address = {
-    weth:"0x60Aa68f9D0D736B9a0a716d04323Ba3b22602840",
-    dai:"0x65C899B5fb8Eb9ae4da51D67E1fc417c7CB7e964",
-    factory:"0x0a67078A35745947A37A552174aFe724D8180c25",
-    router: "0x1F0151386fB0AbBF0273238dF5E9bc519DE5e20B",
-    gaspond:"0xd4567AA4Fd1B32A16c16CBFF9D9a69e51CF72293",
-    multicall: "0x5B11c36bf87ED2EAc102C42E9528eC99D77f7aFd",
-    wethDAIPair: "0x20de5DbeF2224d902a29738EB7c32369436dabAa"
-}
+    weth: "0xe5ec43E65D5E5EcaC25849E151B8A66269e064d3",
+    dai: "0xc2e5D8269F772d1bd3c93DB2755DCEc20eb8C888",
+    lusd: "0x82Efa15637658B8e4943B109247cF68bB4c5b1F1",
+    factory: "0x6d6973Bf5054ce17EB3001914281190B7db1DB07",
+    router: "0x548d143c3Cdc00EA1E3e6B11FefbEf6EeB304923",
+    multicall: "0x9cF4759532ADe8C37B3f279F9474E5ede8E290eb",
+    multicall2: "0x2b1D5a347298BF2B331f1c5305426c00995934BA",
+    gaspond: "0xb7d4c7f78F587ba8c8D96a74C54B70787E48E148",
 
-export const sponsors = {
-    sponsor1:"0x36615Cf349d7F6344891B1e7CA7C72883F5dc049"
+    // sponsors
+    sponsor1: rich_wallet[0].address,
+    sponsor2: rich_wallet[1].address,
+    sponsor3: rich_wallet[2].address,
 }
-
-// token_list.json
-    //,
-    // {
-    //     "chain": "zksync",
-    //     "token_name_encoded": "erc20,addr=0x0faF6df7054946141266420b43783387A78d82A9",
-    //     "symbol": "USDC",
-    //     "name": "USD Coin",
-    //     "decimals": 6
-    // },
-    // {
-    //     "chain": "zksync",
-    //     "token_name_encoded": "erc20,addr=0x0BfcE1D53451B4a8175DD94e6e029F7d8a701e9c",
-    //     "symbol": "WBTC",
-    //     "name": "Wrapped BTC",
-    //     "decimals": 8
-    // },
-    // {
-    //     "chain": "zksync",
-    //     "token_name_encoded": "erc20,addr=0x40609141Db628BeEE3BfAB8034Fc2D8278D0Cc78",
-    //     "symbol": "LINK",
-    //     "name": "Chainlink",
-    //     "decimals": 18
-    // }

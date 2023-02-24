@@ -10,7 +10,7 @@ export const ZkSyncLocal:Chain = {
     isTestChain: true,
     isLocalChain: true,
     multicallAddress: address.multicall,
-    multicall2Address: '0x32Caf123F6f574035f51532E597125062C0Aa8EE',
+    multicall2Address: address.multicall2,
     rpcUrl: 'http://localhost:3050',
     nativeCurrency: {
       name: 'ETH',

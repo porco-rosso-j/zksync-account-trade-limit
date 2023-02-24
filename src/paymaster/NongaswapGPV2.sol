@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {IPaymaster, ExecutionResult, PAYMASTER_VALIDATION_SUCCESS_MAGIC} from "zksync-contracts/interfaces/IPaymaster.sol";
 import {TransactionHelper, Transaction} from "zksync-contracts/libraries/TransactionHelper.sol";
-import {BOOTLOADER_FORMAL_ADDRESS, ETH_TOKEN_SYSTEM_CONTRACT} from "zksync-contracts/Constants.sol";
+import {BOOTLOADER_FORMAL_ADDRESS} from "zksync-contracts/Constants.sol";
 
 import {BytesLib} from "./lib/BytesLib.sol";
 import {NongaswapGPV2Storage} from "./NongaswapGPV2Storage.sol";
@@ -40,7 +40,7 @@ contract NongaswapGPV2 is
     // ================================================================= //
 
     function _isValidSponsor(address _sponsor) internal view returns (bool) {
-        if (sponsors[_sponsor].sponsorId != 0) {
+        if (sponsors[_sponsor].isValidSponsor) {
             return true;
         } else {
             return false;
@@ -186,21 +186,18 @@ contract NongaswapGPV2 is
 
         address[] memory path;
         if (_value != 0) {
-            (, , path, , ) = BytesLib.decodeSwapETHArgs(_data);
-
-            require(
-                sponsor.isSupportedSwapAsset[weth] ||
-                    sponsor.isSupportedSwapAsset[path[1]],
-                "NOT_SUPPORTED_ASSET"
-            );
+            (, path, , ) = BytesLib.decodeSwapETHArgs(_data);
         } else {
-            (, path, , ) = BytesLib.decodeSwapArgs(_data);
-            require(
-                sponsor.isSupportedSwapAsset[path[0]] ||
-                    sponsor.isSupportedSwapAsset[path[1]],
-                "NOT_SUPPORTED_ASSET"
-            );
+            (, , path, , ) = BytesLib.decodeSwapArgs(_data);
         }
+
+        bool isSupported;
+        for (uint256 i; i < path.length; i++) {
+            isSupported = sponsor.isSupportedSwapAsset[path[i]];
+            if (isSupported) break;
+        }
+
+        if (!isSupported) revert("NOT_SUPPORTED_ASSET");
 
         return;
     }
@@ -287,19 +284,15 @@ contract NongaswapGPV2 is
 
     // --- Paymaster's Registration --- //
 
-    function registerSponsor() public payable returns (uint256) {
-        require(msg.value >= minimumETHBalalance, "INVALITE_AMOUNT");
-        uint256 newsponsorAddrCount = sponsorAddrCount + 1;
+    function registerSponsor() public payable {
+        require(msg.value >= minimumETHBalalance, "INVALIT_AMOUNT");
+        require(!sponsors[msg.sender].isValidSponsor, "ALREADY_VALID");
 
-        sponsors[msg.sender].sponsorId = newsponsorAddrCount;
+        sponsors[msg.sender].isValidSponsor = true;
         sponsors[msg.sender].ethBalance = msg.value;
-
-        sponsorAddrCount++;
-        return newsponsorAddrCount;
     }
 
     // --- Paymaster's Limit Configurations --- //
-
     function setLimit(
         uint256 _limit,
         uint256 _duration,
@@ -510,6 +503,75 @@ contract NongaswapGPV2 is
         returns (uint256)
     {
         return sponsors[_sponsor].ethBalance;
+    }
+
+    function getSponsorERC20Balance(address _sponsor, address _token)
+        public
+        view
+        returns (uint256)
+    {
+        return sponsors[_sponsor].erc20Balances[_token];
+    }
+
+    function getOwnershipSponsor(address _sponsor, address _token)
+        public
+        view
+        returns (
+            uint256,
+            bool,
+            bool
+        )
+    {
+        OwnershipSponsor storage ownership = sponsors[_sponsor].ownerships[
+            _token
+        ];
+        return (ownership.minOwnership, ownership.isERC20, ownership.isEnabled);
+    }
+
+    function getERC20Payment(address _sponsor, address _token)
+        public
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            bool
+        )
+    {
+        ERC20Payment storage erc20payment = sponsors[_sponsor].erc20payments[
+            _token
+        ];
+        return (
+            erc20payment.maxFee,
+            erc20payment.minFee,
+            erc20payment.discountRate,
+            erc20payment.isEnabled
+        );
+    }
+
+    function getLimit(address _sponsor)
+        public
+        view
+        returns (
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            uint256,
+            bool
+        )
+    {
+        Limit storage limit = sponsors[_sponsor].limit;
+        return (
+            limit.limit,
+            limit.available,
+            limit.duration,
+            limit.duration,
+            limit.maxFeePerGas,
+            limit.maxGas,
+            limit.isEnabled
+        );
     }
 
     function isSponsoredPath(address[] memory path, address _sponsorAddr)

@@ -10,8 +10,14 @@ export async function deployMulticall (hre: HardhatRuntimeEnvironment) {
     const wallet = new Wallet(rich_wallet[0].privateKey, provider);
     const deployer = new Deployer(hre, wallet);
 
+    // Deploy Multicall
     const multicallArtifact = await deployer.loadArtifact('Multicall');
     const multicall = await deployer.deploy(multicallArtifact)
-    console.log(`multicall address: ${multicall.address}`);
+    console.log(`multicall: "${multicall.address}",`);
+
+    // Deploy Multicall2
+    const multical2Artifact = await deployer.loadArtifact('Multicall2');
+    const multicall2 = await deployer.deploy(multical2Artifact)
+    console.log(`multicall2: "${multicall2.address}",`);
 
 }

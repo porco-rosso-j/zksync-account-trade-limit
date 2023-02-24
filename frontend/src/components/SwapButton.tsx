@@ -1,5 +1,5 @@
 import { Button, Box } from "@chakra-ui/react";
-import { useConnector, useEthers } from "@usedapp/core";
+import { useEthers } from "@usedapp/core";
 import { ZkSyncLocal } from "../common/zkSyncLocal";
 import { Token } from "../common/Token";
 import { grayed_lavender, lavender, turquoise } from "../theme";
@@ -110,9 +110,9 @@ export default function SwapButton({
           disabled={disabled}
         >
           {areTokensSelected
-          //  ? hasSufficientApproval
+           ? isNonZeroQuantity
               ? `Insufficient ${tokenIn?.symbol} balance`
-          //    : "Insufficient Approval"
+             : `Amount can't be zero`
             : "Please select a token"}
         </Button>
       </Box>

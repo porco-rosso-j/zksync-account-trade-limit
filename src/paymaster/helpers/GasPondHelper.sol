@@ -35,7 +35,7 @@ abstract contract GasPondHelper {
         require(allowance != 0, "INVALID_AMOUNT");
 
         (address sponsorAddr, ) = abi.decode(input, (address, address));
-        require(sponsorAddr != address(0), "INAVLID_INDEX");
+        require(sponsorAddr != address(0), "INAVLID_ADDRESS");
 
         return (token, allowance, sponsorAddr);
     }
@@ -52,8 +52,7 @@ abstract contract GasPondHelper {
             (address, address)
         );
 
-        require(sponsorAddr != address(0), "INAVLID_INDEX");
-        require(ownedAsset != address(0), "INAVLID_INDEX");
+        require(sponsorAddr != address(0), "INAVLID_ADDRESS");
 
         return (sponsorAddr, ownedAsset);
     }

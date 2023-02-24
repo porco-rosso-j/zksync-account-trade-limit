@@ -7,7 +7,7 @@ abstract contract NongaswapGPV2Storage {
     uint256 public minimumETHBalalance = 1e16; // 0.01 ETH
 
     struct Sponsor {
-        uint256 sponsorId;
+        bool isValidSponsor;
         uint256 ethBalance;
         mapping(address => uint256) erc20Balances; // token => balnace
         mapping(address => bool) isSupportedSwapAsset; // token => bool
@@ -42,8 +42,4 @@ abstract contract NongaswapGPV2Storage {
     mapping(address => bool) public isValidRouter;
     mapping(address => Sponsor) public sponsors; // sponsor address => Sponsor
     uint256 public sponsorAddrCount;
-
-    // mapping(address => Limit) public limits; // sponsor => Limit
-    // mapping(address => mapping(address => OwnershipSponsor)) public ownerships; // sponsor => token => OwnershipSponsor
-    // mapping(address => mapping(address => ERC20Payment)) public erc20payments; // sponsor => token => ERC20Payment
 }

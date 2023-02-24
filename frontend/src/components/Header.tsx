@@ -10,12 +10,15 @@ import {
   Switch,
   Spacer,
   useMediaQuery,
+  Box
 } from "@chakra-ui/react";
 
 import logo from "../assets/logo.svg";
 import AccountModal from "./Modal/AccountModal";
 import { SocialIcon } from "react-social-icons";
 import ConnectButton from "./ConnectButton";
+// import TopNavBar from './NavBar'
+// import { Outlet } from "react-router-dom";
 
 type Props = {
   children?: ReactNode;
@@ -53,6 +56,7 @@ export default function Layout({ children }: Props) {
   useEffect(() => setIsDarkMode(colorMode === "dark"), [colorMode]);
 
   return (
+    
     <Menu>
       <Flex alignItems="center" mx="1.5rem" mt="1.5rem">
         <Image boxSize={getLogoSize()} src={logo} alt="nongaswap logo" />

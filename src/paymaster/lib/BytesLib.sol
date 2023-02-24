@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 library BytesLib {
-    function decodeSwapArgs(bytes memory _calldata)
+    function decodeSwapETHArgs(bytes memory _calldata)
         internal
         pure
         returns (
@@ -24,7 +24,7 @@ library BytesLib {
         return (amountOut, path, to, deadline);
     }
 
-    function decodeSwapETHArgs(bytes memory _calldata)
+    function decodeSwapArgs(bytes memory _calldata)
         internal
         pure
         returns (

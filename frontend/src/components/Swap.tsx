@@ -23,6 +23,7 @@ import {
 } from "@usedapp/core";
 
 import { BigNumber, constants, Contract } from 'ethers';
+import { Web3Provider, Provider } from 'zksync-web3';
 
 import SwapButton from "./SwapButton";
 import TokenSelect from "./TokenSelect";
@@ -31,16 +32,17 @@ import { Token } from "../common/Token";
 
 import {
   _quoteSwap, 
-  _swapETH, 
-  _swapToken, 
-  _swapETHSponsored, 
-  _swapTokenSponsored
+  _swapETHForToken, 
+  _swapTokenForETH, 
+  _swapTokenForToken,
+  _swapETHForTokenSponsored, 
+  _swapTokenForETHSponsored,
+  _swapTokenForTokenSponsored
 } from "../common/swapRouter"
 
 import { _isSponsoredPath } from "../common/gasPond"
-import {address, sponsors} from "../common/address"
+import { address } from "../common/address"
 import { ZkSyncLocal } from "../common/zkSyncLocal";
-import { Web3Provider, Provider } from 'zksync-web3';
 
 export default function Trade() {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -133,7 +135,7 @@ export default function Trade() {
      ? tokenIn?.getAddressFromEncodedTokenName() : address.weth, 
    isNativeTokenOut === false
      ? tokenOut?.getAddressFromEncodedTokenName() : address.weth,  
-    sponsors.sponsor1, 
+    address.sponsor1, 
     account as string
     )
   
@@ -170,14 +172,13 @@ export default function Trade() {
     setDisabled(true);
     if (tokenInAddress === "native") {
       if (isSwapSponsored) {
-        tx = await _swapETHSponsored(
-          signer,
+        tx = await _swapETHForTokenSponsored(
           tokenOutAddress, 
           tokenInQuantity,
           account
         )
       } else {
-        tx = await _swapETH(
+        tx = await _swapETHForToken(
           tokenOutAddress, 
           tokenInQuantity,
           account
@@ -186,20 +187,36 @@ export default function Trade() {
 
     } else if (tokenOutAddress == "native") {
       if (isSwapSponsored) {
-        tx = await _swapTokenSponsored(
-          signer,
+        tx = await _swapTokenForETHSponsored(
           tokenInAddress,
           tokenInQuantity,
           account
         ) 
       } else {
-        tx = await _swapToken(
+        tx = await _swapTokenForETH(
           tokenInAddress,
           tokenInQuantity,
           account
         )
       } 
+    } else {
+      if (isSwapSponsored) {
+        tx = await _swapTokenForTokenSponsored(
+          tokenInAddress,
+          tokenOutAddress,
+          tokenInQuantity,
+          account
+        ) 
+      } else {
+        tx = await _swapTokenForToken(
+          tokenInAddress,
+          tokenOutAddress,
+          tokenInQuantity,
+          account
+        )
+      } 
     }
+
     receipt= await tx.wait()
     console.log("swap transaction receipt =", receipt);
     setDisabled(false);
@@ -209,9 +226,9 @@ export default function Trade() {
     const timeOutId = setTimeout(async () => {
       if (tokenIn && tokenOut && tokenInQuantity > BigInt(0)) {
         let rawQuote = await _quoteSwap(
-          tokenIn?.getAddressFromEncodedTokenName(),
-          tokenOut?.getAddressFromEncodedTokenName(),
-          tokenInQuantity
+          tokenIn?.getAddressFromEncodedTokenName() as string,
+          tokenOut?.getAddressFromEncodedTokenName() as string,
+          tokenInQuantity as BigInt
         );
         let quote = Number(rawQuote) / 10 ** tokenOut.decimals;
   
@@ -276,7 +293,6 @@ export default function Trade() {
       >
         <Text color={colorMode === "dark" ? "white" : "black"} fontWeight="500">
           Swap from:
-          {console.log("isSwapSponsored: ", isSwapSponsored)}
         </Text>
         <SettingsIcon
           fontSize="1.25rem"
