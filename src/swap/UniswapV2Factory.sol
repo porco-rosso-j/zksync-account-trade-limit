@@ -2,12 +2,14 @@
 
 pragma solidity ^0.8.4;
 
+import "zksync-contracts/libraries/SystemContractsCaller.sol";
+import {DEPLOYER_SYSTEM_CONTRACT} from "zksync-contracts/Constants.sol";
+import {IContractDeployer} from "zksync-contracts/interfaces/IContractDeployer.sol";
 import "./interfaces/IUniswapV2Factory.sol";
 import "./UniswapV2Pair.sol";
 
 contract UniswapV2Factory is IUniswapV2Factory {
-    bytes32 public constant PAIR_HASH =
-        keccak256(type(UniswapV2Pair).creationCode);
+    bytes32 public PAIR_HASH;
 
     address public override feeTo;
     address public override feeToSetter;
@@ -15,8 +17,9 @@ contract UniswapV2Factory is IUniswapV2Factory {
     mapping(address => mapping(address => address)) public override getPair;
     address[] public override allPairs;
 
-    constructor(address _feeToSetter) {
+    constructor(address _feeToSetter, bytes32 _PAIR_HASH) {
         feeToSetter = _feeToSetter;
+        PAIR_HASH = _PAIR_HASH;
     }
 
     function allPairsLength() external view override returns (uint256) {

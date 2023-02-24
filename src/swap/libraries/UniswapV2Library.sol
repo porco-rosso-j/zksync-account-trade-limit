@@ -4,6 +4,8 @@ pragma solidity ^0.8.4;
 
 //solhint-disable reason-string
 
+import {DEPLOYER_SYSTEM_CONTRACT} from "zksync-contracts/Constants.sol";
+import {IContractDeployer} from "zksync-contracts/interfaces/IContractDeployer.sol";
 import "../interfaces/IUniswapV2Pair.sol";
 import "../interfaces/IUniswapV2Factory.sol";
 
@@ -21,6 +23,21 @@ library UniswapV2Library {
         require(token0 != address(0), "UniswapV2Library: ZERO_ADDRESS");
     }
 
+    // calculates the CREATE2 address for a pair without making any external calls
+    function pairFor(
+        address factory,
+        address tokenA,
+        address tokenB
+    ) internal pure returns (address pair) {
+        (address token0, address token1) = sortTokens(tokenA, tokenB);
+        pair = IContractDeployer(DEPLOYER_SYSTEM_CONTRACT).getNewAddressCreate2(
+                factory,
+                hex"010003c50a9143a16c422a86a847acf86c7f90d24c40feb2f835e7eb03963ede",
+                keccak256(abi.encodePacked(token0, token1)),
+                new bytes(0)
+            );
+    }
+
     // fetches and sorts the reserves for a pair
     function getReserves(
         address factory,
@@ -29,7 +46,7 @@ library UniswapV2Library {
     ) internal view returns (uint256 reserveA, uint256 reserveB) {
         (address token0, ) = sortTokens(tokenA, tokenB);
         (uint256 reserve0, uint256 reserve1, ) = IUniswapV2Pair(
-            IUniswapV2Factory(factory).getPair(tokenA, tokenB)
+            pairFor(factory, tokenA, tokenB)
         ).getReserves();
         (reserveA, reserveB) = tokenA == token0
             ? (reserve0, reserve1)

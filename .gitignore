@@ -19,6 +19,9 @@
 /node_modules
 /out
 
+/test/uniswapV2/UniswapV2Pair.spec.ts
+/test/uniswapV2/UniswapV2Router.spec.ts
+
 /local-setup
 /src/paymaster/doc/
 /typechain-types

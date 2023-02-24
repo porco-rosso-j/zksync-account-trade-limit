@@ -1,12 +1,11 @@
 //https://book.getfoundry.sh/config/hardhat
 
 import fs from "fs";
-import "@nomiclabs/hardhat-waffle";
-import "@typechain/hardhat";
+import { HardhatUserConfig } from "hardhat/config";
 import "@matterlabs/hardhat-zksync-deploy";
 import "@matterlabs/hardhat-zksync-solc";
 import "hardhat-preprocessor";
-import { HardhatUserConfig } from "hardhat/config";
+import "@typechain/hardhat";
 import * as dotenv from "dotenv";
 dotenv.config();
 
@@ -24,6 +23,7 @@ const zkSyncTestnet =
         url: "http://localhost:3050",
         ethNetwork: "http://localhost:8545",
         zksync: true,
+        timeout: 100000
       } : {
         url: "https://zksync2-testnet.zksync.dev",
         ethNetwork: "https://eth-mainnet.g.alchemy.com/v2/" + process.env.ALCHEMY_API_KEY_GOERLI, // e.g. alchemy url
@@ -36,12 +36,7 @@ const compilers = [
 ]
 // {{version: "0.8.0"}, version: "0.4.0"}, {version: "0.5.16"}, {version: "0.6.0"}, {version: "0.6.3"}, {version: "0.6.6"}, {version: "0.6.12"}, 
 
-interface HHzkSyncFoundryConfig extends HardhatUserConfig {
-    zksolc:any,
-    preprocess:any,
-}
-
-const config: HHzkSyncFoundryConfig = {
+const config: HardhatUserConfig = {
   zksolc: {
         version: '1.3.5',
         compilerSource: 'binary',
