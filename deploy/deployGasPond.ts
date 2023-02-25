@@ -12,7 +12,7 @@ import { address } from "../frontend/src/common/address"
 
 // Deploy function
 export default async function deployGasPond (hre: HardhatRuntimeEnvironment) {
-    const provider = Provider.getDefaultProvider();
+    const provider = new Provider("http://localhost:3050");
     const wallet = new Wallet(rich_wallet[0].privateKey, provider);
     const deployer = new Deployer(hre, wallet);
 

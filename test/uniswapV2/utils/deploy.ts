@@ -47,11 +47,16 @@ export async function deployPair(wallet:Wallet, TOTAL_SUPPLY: BigNumber): Promis
     return pair
 }
 
-
 export async function deployRouter(wallet:Wallet, factory: Contract): Promise<Contract> {
     let deployer:Deployer = new Deployer(hre, wallet);
     const routerArtifact = await deployer.loadArtifact("UniswapV2Router");
     const weth = await deployWETH(wallet)
+    return (await deployer.deploy(routerArtifact, [factory.address, weth.address]))
+}
+
+export async function deployRouterWithWETH(wallet:Wallet, factory: Contract, weth:Contract): Promise<Contract> {
+    let deployer:Deployer = new Deployer(hre, wallet);
+    const routerArtifact = await deployer.loadArtifact("UniswapV2Router");
     return (await deployer.deploy(routerArtifact, [factory.address, weth.address]))
 }
 
@@ -65,6 +70,12 @@ export async function deployMockTKN(wallet:Wallet, name:string, symbol:string, d
     let deployer:Deployer = new Deployer(hre, wallet);
     const tknArtifact = await deployer.loadArtifact("MockTKN");
     return await deployer.deploy(tknArtifact, [name, symbol, decimal])
+}
+
+export async function deployERC20(wallet:Wallet, initialSupply:BigNumber): Promise<Contract> {
+    let deployer:Deployer = new Deployer(hre, wallet);
+    const erc20Artifact = await deployer.loadArtifact("ERC20Mock");
+    return await deployer.deploy(erc20Artifact, [initialSupply])
 }
 
 export async function mintTKN(wallet:Wallet, token:Contract, amount:BigNumber) {
@@ -108,6 +119,11 @@ export async function getPairContract(address:string, wallet:Wallet):Promise<Con
     return new Contract(address, pairArtifact.abi, wallet)
 }
 
+export async function deployRouterEmiter(wallet:Wallet):Promise<Contract> {
+    const deployer:Deployer = new Deployer(hre, wallet);
+    const routerEmitterArtifact = await deployer.loadArtifact("RouterEventEmitter");
+    return await deployer.deploy(routerEmitterArtifact, [])
+}
 
 
 /// Contract Getters

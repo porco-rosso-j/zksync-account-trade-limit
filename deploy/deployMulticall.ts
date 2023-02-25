@@ -6,7 +6,7 @@ import { rich_wallet } from "./utils/rich-wallet"
 // Deploy function
 export async function deployMulticall (hre: HardhatRuntimeEnvironment) {
 
-    const provider = Provider.getDefaultProvider();
+    const provider = new Provider("http://localhost:3050");
     const wallet = new Wallet(rich_wallet[0].privateKey, provider);
     const deployer = new Deployer(hre, wallet);
 

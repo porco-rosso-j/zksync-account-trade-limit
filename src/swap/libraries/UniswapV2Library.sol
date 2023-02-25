@@ -32,7 +32,7 @@ library UniswapV2Library {
         (address token0, address token1) = sortTokens(tokenA, tokenB);
         pair = IContractDeployer(DEPLOYER_SYSTEM_CONTRACT).getNewAddressCreate2(
                 factory,
-                hex"010003c50a9143a16c422a86a847acf86c7f90d24c40feb2f835e7eb03963ede",
+                hex"010003c55bc478c9c7dbdbb47eaa631527a262bc06def32404c2692ef37b18e7",
                 keccak256(abi.encodePacked(token0, token1)),
                 new bytes(0)
             );

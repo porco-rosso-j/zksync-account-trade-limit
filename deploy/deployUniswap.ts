@@ -1,4 +1,4 @@
-import { Wallet, Provider } from 'zksync-web3';
+import { Wallet, Provider, utils } from 'zksync-web3';
 import { ethers} from "ethers";
 import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { Deployer } from '@matterlabs/hardhat-zksync-deploy';
@@ -9,7 +9,7 @@ import { toBN } from "./utils/helper";
 
 // Deploy function
 export async function deployUniswap (hre: HardhatRuntimeEnvironment):Promise<any> {
-    const provider = Provider.getDefaultProvider();
+    const provider = new Provider("http://localhost:3050");
     const wallet = new Wallet(rich_wallet[0].privateKey, provider);
     const deployer = new Deployer(hre, wallet);
 
@@ -32,7 +32,8 @@ export async function deployUniswap (hre: HardhatRuntimeEnvironment):Promise<any
    console.log(`lusd: "${lusd.address}",`);
 
     // Deploy Factory with pair bytecode
-    const factory = await deployer.deploy(factoryArtifact, [wallet.address], undefined, [pairArtifact.bytecode])
+    const pairBytecodeHash = utils.hashBytecode(pairArtifact.bytecode);
+    const factory = await deployer.deploy(factoryArtifact, [wallet.address, pairBytecodeHash], undefined, [pairArtifact.bytecode])
     console.log(`factory: "${factory.address}",`)
 
     // Deploy Router

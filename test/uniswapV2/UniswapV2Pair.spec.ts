@@ -4,10 +4,8 @@ import { ethers, BigNumber, constants as ethconst } from "ethers";
 import { rich_wallet } from "./utils/rich-wallet"
 import { deployUniswapFactory,  deployMockTKN, getPairContract, mintTKN } from "./utils/deploy"
 import { Wallet, Provider } from "zksync-web3";
-import { UniswapV2Factory, UniswapV2Pair, ERC20 } from "../../typechain-types";
+import { UniswapV2Factory, UniswapV2Pair, ERC20Mock } from "../../typechain-types";
 import { expandTo18Decimals, encodePrice } from "./utils/utilities";
-
-//import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 
 const MINIMUM_LIQUIDITY = BigNumber.from(10).pow(3);
 const GASLIMIT = {gasLimit: ethers.BigNumber.from(500000)}
@@ -15,13 +13,13 @@ const GASLIMIT = {gasLimit: ethers.BigNumber.from(500000)}
 describe("UniswapV2Pair", () => {
 
   async function deploy() {
-    const provider = Provider.getDefaultProvider();
+    const provider = new Provider("http://localhost:3050");
     const wallet = new Wallet(rich_wallet[0].privateKey, provider);
     const other = new Wallet(rich_wallet[1].privateKey, provider);
     const factory = <UniswapV2Factory>(await deployUniswapFactory(wallet));
 
-    const tokenA = <ERC20>(await deployMockTKN(wallet, "", "", 18))
-    const tokenB = <ERC20>(await deployMockTKN(wallet, "", "", 18))
+    const tokenA = <ERC20Mock>(await deployMockTKN(wallet, "", "", 18))
+    const tokenB = <ERC20Mock>(await deployMockTKN(wallet, "", "", 18))
     await mintTKN(wallet, tokenA, expandTo18Decimals(10000))
     await mintTKN(wallet, tokenB, expandTo18Decimals(10000))
 
@@ -36,7 +34,7 @@ describe("UniswapV2Pair", () => {
     return { pair, token0, token1, wallet, other, factory };
   }
 
-  it.skip("mint", async () => {
+  it("mint", async () => {
     const { pair, wallet, token0, token1 } = await deploy();
     const token0Amount = expandTo18Decimals(1);
     const token1Amount = expandTo18Decimals(4);
@@ -71,8 +69,8 @@ describe("UniswapV2Pair", () => {
   });
 
   async function addLiquidity(
-    token0: ERC20,
-    token1: ERC20,
+    token0: ERC20Mock,
+    token1: ERC20Mock,
     pair: UniswapV2Pair,
     wallet: Wallet,
     token0Amount: BigNumber,
@@ -99,7 +97,7 @@ describe("UniswapV2Pair", () => {
     )
   );
   swapTestCases.forEach((swapTestCase, i) => {
-    it.skip(`getInputPrice:${i}`, async () => {
+    it(`getInputPrice:${i}`, async () => {
       const { pair, wallet, token0, token1 } = await deploy();
 
       const [swapAmount, token0Amount, token1Amount, expectedOutputAmount] =
@@ -131,7 +129,7 @@ describe("UniswapV2Pair", () => {
     )
   );
   optimisticTestCases.forEach((optimisticTestCase, i) => {
-    it.skip(`optimistic:${i}`, async () => {
+    it(`optimistic:${i}`, async () => {
       
       const { pair, wallet, token0, token1 } = await deploy();
 
@@ -153,7 +151,7 @@ describe("UniswapV2Pair", () => {
     });
   });
 
-  it.skip("swap:token0", async () => {
+  it("swap:token0", async () => {
     const { pair, wallet, token0, token1 } = await deploy();
 
     const token0Amount = expandTo18Decimals(5);
@@ -207,7 +205,7 @@ describe("UniswapV2Pair", () => {
     );
   });
 
-  it.skip("swap:token1", async () => {
+  it("swap:token1", async () => {
     const { pair, wallet, token0, token1 } = await deploy();
 
     const token0Amount = expandTo18Decimals(5);
@@ -262,7 +260,7 @@ describe("UniswapV2Pair", () => {
   });
 
   // timestmap
-  it.skip("swap:gas", async () => {
+  it("swap:gas", async () => {
     const { pair, wallet, token0, token1 } = await deploy();
 
     const token0Amount = expandTo18Decimals(5);
@@ -276,28 +274,18 @@ describe("UniswapV2Pair", () => {
       token1Amount
     );
 
-    // ensure that setting price{0,1}CumulativeLast for the first time doesn't affect our gas math
-    // await ethers.provider.send("evm_mine", [
-    //   (await ethers.provider.getBlock("latest")).timestamp + 1,
-    // ]);
-
-    // await time.setNextBlockTimestamp(
-    //   (await ethers.provider.getBlock("latest")).timestamp + 1
-    // );
     await pair.sync();
 
     const swapAmount = expandTo18Decimals(1);
     const expectedOutputAmount = BigNumber.from("453305446940074565");
     await(await token1.transfer(pair.address, swapAmount)).wait()
-    // await time.setNextBlockTimestamp(
-    //   (await ethers.provider.getBlock("latest")).timestamp + 1
-    // );
+
     const tx = await pair.swap(expectedOutputAmount, 0, wallet.address, "0x");
     const receipt = await tx.wait();
-    expect(receipt.gasUsed).to.eq(195291);
+    expect(receipt.gasUsed).to.eq(192651);
   });
 
-  it.skip("burn", async () => {
+  it("burn", async () => {
     const { pair, wallet, token0, token1 } = await deploy();
 
     const token0Amount = expandTo18Decimals(3);
@@ -349,11 +337,12 @@ describe("UniswapV2Pair", () => {
   });
 
   // timestmap
-  it.skip("price{0,1}CumulativeLast", async () => {
+  it("price{0,1}CumulativeLast", async () => {
     const { pair, wallet, token0, token1 } = await deploy();
 
     const token0Amount = expandTo18Decimals(3);
     const token1Amount = expandTo18Decimals(3);
+
     await addLiquidity(
       token0,
       token1,
@@ -363,39 +352,33 @@ describe("UniswapV2Pair", () => {
       token1Amount
     );
 
-    const blockTimestamp = (await pair.getReserves())[2];
-    // await time.setNextBlockTimestamp(blockTimestamp + 1);
+    const initialPrice:BigNumber[] = encodePrice(token0Amount, token1Amount);
+
+    const timestamp0 = (await pair.getReserves())[2]
     await(await pair.sync()).wait();
+    expect(await pair.price0CumulativeLast()).to.gte(initialPrice[0]);
+    expect(await pair.price1CumulativeLast()).to.gte(initialPrice[1]);
+    expect((await pair.price0CumulativeLast()).mod(initialPrice[0])).to.eq(BigNumber.from(0));
+    expect((await pair.price1CumulativeLast()).mod(initialPrice[1])).to.eq(BigNumber.from(0));
 
-    const initialPrice = encodePrice(token0Amount, token1Amount);
-    // expect(await pair.price0CumulativeLast()).to.eq(initialPrice[0]);
-    // expect(await pair.price1CumulativeLast()).to.eq(initialPrice[1]);
-    // expect((await pair.getReserves())[2]).to.eq(blockTimestamp + 1);
+    const timestamp1 = (await pair.getReserves())[2]
+    expect(timestamp1).to.gt(timestamp0);
 
+    const timestamp2 = (await pair.getReserves())[2]
     const swapAmount = expandTo18Decimals(3);
     await(await token0.transfer(pair.address, swapAmount)).wait();
-    // await time.setNextBlockTimestamp(blockTimestamp + 10);
-    // swap to a new price eagerly instead of syncing
     await(await pair.swap(0, expandTo18Decimals(1), wallet.address, "0x")).wait(); // make the price nice
 
-    expect(await pair.price0CumulativeLast()).to.eq(initialPrice[0].mul(10));
-    expect(await pair.price1CumulativeLast()).to.eq(initialPrice[1].mul(10));
-    expect((await pair.getReserves())[2]).to.eq(blockTimestamp + 10);
+    expect(await pair.price0CumulativeLast()).to.gt(initialPrice[0]);
+    expect(await pair.price1CumulativeLast()).to.gt(initialPrice[1]);
+    expect((await pair.price0CumulativeLast()).mod(initialPrice[0])).to.eq(BigNumber.from(0));
+    expect((await pair.price1CumulativeLast()).mod(initialPrice[1])).to.eq(BigNumber.from(0));
 
-    // await time.setNextBlockTimestamp(blockTimestamp + 20);
-    await(await pair.sync()).wait();
-
-    const newPrice = encodePrice(expandTo18Decimals(6), expandTo18Decimals(2));
-    expect(await pair.price0CumulativeLast()).to.eq(
-      initialPrice[0].mul(10).add(newPrice[0].mul(10))
-    );
-    expect(await pair.price1CumulativeLast()).to.eq(
-      initialPrice[1].mul(10).add(newPrice[1].mul(10))
-    );
-    expect((await pair.getReserves())[2]).to.eq(blockTimestamp + 20);
+    const timestamp3 = (await pair.getReserves())[2]
+    expect(timestamp3).to.gt(timestamp2);
   });
 
-  it.skip("feeTo:off", async () => {
+  it("feeTo:off", async () => {
     const { pair, wallet, token0, token1 } = await deploy();
 
     const token0Amount = expandTo18Decimals(1000);

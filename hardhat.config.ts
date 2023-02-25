@@ -2,6 +2,7 @@
 
 import fs from "fs";
 import { HardhatUserConfig } from "hardhat/config";
+import "@matterlabs/hardhat-zksync-chai-matchers";
 import "@matterlabs/hardhat-zksync-deploy";
 import "@matterlabs/hardhat-zksync-solc";
 import "hardhat-preprocessor";
@@ -33,6 +34,7 @@ const zkSyncTestnet =
 
 const compilers = [
    {version: "0.8.1"}, {version: "0.8.4"}, {version: "0.8.11"},
+   
 ]
 // {{version: "0.8.0"}, version: "0.4.0"}, {version: "0.5.16"}, {version: "0.6.0"}, {version: "0.6.3"}, {version: "0.6.6"}, {version: "0.6.12"}, 
 
@@ -43,7 +45,8 @@ const config: HardhatUserConfig = {
         settings: {},
       },
   solidity: {
-    compilers: compilers
+    compilers: compilers,
+
   },
   defaultNetwork: "zkSyncTestnet",
 

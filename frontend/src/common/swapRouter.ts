@@ -6,7 +6,7 @@ import {address} from "./address"
 
 let router: UniswapV2Router
 
-const provider = Provider.getDefaultProvider();
+const provider = new Provider("http://localhost:3050");
 const signer = (new Web3Provider(window.ethereum)).getSigner();
 router = <UniswapV2Router>(new Contract(address.router, routerArtifact.abi, signer))
 

@@ -12,7 +12,7 @@ const TEST_AMOUNT = expandTo18Decimals(10);
 
 describe("UniswapV2ERC20", () => {
   async function deploy() {
-    const provider = Provider.getDefaultProvider();
+    const provider = new Provider("http://localhost:3050");
     const wallet = new Wallet(rich_wallet[0].privateKey, provider);
     const other =new Wallet(rich_wallet[1].privateKey, provider);
     const token = <UniswapV2ERC20>(await deployUniswapERC20(wallet, TOTAL_SUPPLY));
