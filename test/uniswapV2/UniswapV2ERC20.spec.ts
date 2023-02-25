@@ -1,8 +1,8 @@
 import { expect } from "chai";
 import "@matterlabs/hardhat-zksync-chai-matchers";
-import { ethers, BigNumber, Contract } from "ethers";
+import { ethers, BigNumber } from "ethers";
 import { rich_wallet } from "./utils/rich-wallet"
-import { deployUniswapERC20, getERC20Contract } from "./utils/deploy"
+import { deployUniswapERC20 } from "./utils/deploy"
 import { Wallet, Provider } from "zksync-web3";
 import { UniswapV2ERC20 } from "../../typechain-types";
 import { expandTo18Decimals, UniswapVersion } from "./utils/utilities";
@@ -88,9 +88,10 @@ describe("UniswapV2ERC20", () => {
   it("transferFrom", async () => {
     const { token, wallet, other } = await deploy();
     await token.approve(other.address, TEST_AMOUNT);
-    const LPtokenContract = await getERC20Contract(token.address, other)
+    //const LPtokenContract = await getERC20Contract(token.address, other)
     await expect(
-      LPtokenContract
+      token
+        .connect(other)
         .transferFrom(wallet.address, other.address, TEST_AMOUNT)
     )
       .to.emit(token, "Transfer")

@@ -67,6 +67,10 @@ export async function deployMockTKN(wallet:Wallet, name:string, symbol:string, d
     return await deployer.deploy(tknArtifact, [name, symbol, decimal])
 }
 
+export async function mintTKN(wallet:Wallet, token:Contract, amount:BigNumber) {
+    await (await token.mint(wallet.address, amount,  {gasLimit: ethers.BigNumber.from(1000000)})).wait()
+}
+
 export async function deployUniswapFactory(wallet: Wallet): Promise<Contract> {
     let deployer:Deployer = new Deployer(hre, wallet);
     const factoryArtifact = await deployer.loadArtifact("UniswapV2Factory");
@@ -99,7 +103,8 @@ export async function _createPair(factory:Contract, token0:string, token1:string
 }
 
 export async function getPairContract(address:string, wallet:Wallet):Promise<Contract> {
-    const pairArtifact = await hre.artifacts.readArtifact("UniswapV2Pair");
+    const deployer:Deployer = new Deployer(hre, wallet);
+    const pairArtifact = await deployer.loadArtifact("UniswapV2Pair");
     return new Contract(address, pairArtifact.abi, wallet)
 }
 
