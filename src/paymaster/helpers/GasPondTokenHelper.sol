@@ -4,8 +4,6 @@ pragma solidity ^0.8.0;
 import {IUniswapV2Router} from "@uniswap/interfaces/IUniswapV2Router.sol";
 import {IERC20} from "zksync-contracts/openzeppelin/token/ERC20/IERC20.sol";
 import {ERC20, SafeTransferLib} from "solmate/utils/SafeTransferLib.sol";
-
-import {IERC20} from "zksync-contracts/openzeppelin/token/ERC20/IERC20.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract GasPondTokenHelper {

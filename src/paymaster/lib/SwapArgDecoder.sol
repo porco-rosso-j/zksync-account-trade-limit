@@ -1,7 +1,27 @@
 //SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-library BytesLib {
+library SwapArgDecoder {
+    function _decodeSwapETHArgs(bytes calldata _calldata)
+        internal
+        pure
+        returns (
+            uint256,
+            address[] memory,
+            address,
+            uint256
+        )
+    {
+        (
+            uint256 amountOut,
+            address[] memory path,
+            address to,
+            uint256 deadline
+        ) = abi.decode(_calldata[4:], (uint256, address[], address, uint256));
+
+        return (amountOut, path, to, deadline);
+    }
+
     function decodeSwapETHArgs(bytes memory _calldata)
         internal
         pure

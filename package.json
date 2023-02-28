@@ -14,7 +14,7 @@
     "license": "Apache-2.0",
     "devDependencies": {
         "@matterlabs/hardhat-zksync-chai-matchers": "^0.1.1",
-        "@matterlabs/hardhat-zksync-deploy": "^0.6.1",
+        "@matterlabs/hardhat-zksync-deploy": "0.6.2",
         "@matterlabs/hardhat-zksync-solc": "0.3.14",
         "@matterlabs/hardhat-zksync-toolbox": "^0.1.0",
         "@nomicfoundation/hardhat-chai-matchers": "^1.0.5",
@@ -27,7 +27,8 @@
         "@types/node": "^18.14.2",
         "chai": "^4.3.6",
         "dotenv": "^16.0.3",
-        "ethers": "5.7.0",
+        "ethereum-waffle": "^4.0.10",
+        "ethers": "^5.7.2",
         "hardhat": "^2.12.7",
         "hardhat-preprocessor": "^0.1.5",
         "ts-node": "^10.7.0",

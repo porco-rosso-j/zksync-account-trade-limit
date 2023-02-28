@@ -8,21 +8,21 @@
     },
     {
         "chain": "zksync",
-        "token_name_encoded": "erc20,addr=0xe5ec43E65D5E5EcaC25849E151B8A66269e064d3",
+        "token_name_encoded": "erc20,addr=0x26b368C3Ed16313eBd6660b72d8e4439a697Cb0B",
         "symbol": "WETH",
         "name": "Wrapped ETH",
         "decimals": 18
     },
     {
         "chain": "zksync",
-        "token_name_encoded": "erc20,addr=0xc2e5D8269F772d1bd3c93DB2755DCEc20eb8C888",
+        "token_name_encoded": "erc20,addr=0x094499Df5ee555fFc33aF07862e43c90E6FEe501",
         "symbol": "DAI",
         "name": "Dai Stablecoin",
         "decimals": 18
     },
     {
         "chain": "zksync",
-        "token_name_encoded": "erc20,addr=0x82Efa15637658B8e4943B109247cF68bB4c5b1F1",
+        "token_name_encoded": "erc20,addr=0xb76eD02Dea1ba444609602BE5D587c4bFfd67153",
         "symbol": "LUSD",
         "name": "Liquity USD",
         "decimals": 18

@@ -39,6 +39,7 @@ const compilers = [
 // {{version: "0.8.0"}, version: "0.4.0"}, {version: "0.5.16"}, {version: "0.6.0"}, {version: "0.6.3"}, {version: "0.6.6"}, {version: "0.6.12"}, 
 
 const config: HardhatUserConfig = {
+//module.exports = {
   zksolc: {
         version: '1.3.5',
         compilerSource: 'binary',

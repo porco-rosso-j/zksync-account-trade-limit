@@ -76,7 +76,10 @@ export default function Layout({ children }: Props) {
 
         </VStack>
 
-        <AccountModal isOpen={isOpen} onClose={onClose} />
+        <AccountModal 
+        isOpen={isOpen} 
+        onClose={onClose} 
+        />
       </Flex>
     </Menu>
   );

@@ -13,7 +13,7 @@ const GASLIMIT = {gasLimit: ethers.BigNumber.from(500000)}
 describe("UniswapV2Pair", () => {
 
   async function deploy() {
-    const provider = new Provider("http://localhost:3050");
+    const provider = new Provider("http://localhost:3050", 270);;
     const wallet = new Wallet(rich_wallet[0].privateKey, provider);
     const other = new Wallet(rich_wallet[1].privateKey, provider);
     const factory = <UniswapV2Factory>(await deployUniswapFactory(wallet));

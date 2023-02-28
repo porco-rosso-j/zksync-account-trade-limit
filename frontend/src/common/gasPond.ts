@@ -1,5 +1,4 @@
-import { Contract } from 'ethers';
-import { Provider, Web3Provider } from 'zksync-web3';
+import { Contract, ethers } from 'ethers';
 import {default as gasPondArtifact} from "artifacts/src/paymaster/NongaswapGPV2.sol/NongaswapGPV2.json" //yarn upgrade artifacts --latest
 import {address} from "./address"
 import { Falsy, useCall } from '@usedapp/core'
@@ -32,11 +31,12 @@ export function _isSponsoredPath(
     _sponsor: string | Falsy,
     _address: string | Falsy
 ): boolean | undefined {
-
-    const _path = _tokenIn && _tokenOut ? [_tokenIn, _tokenOut] : undefined;
     
-    const path = _path && (_tokenIn != address.weth && _tokenOut != address.weth)
-     ? [_tokenIn, address.weth, _tokenOut] : [_tokenIn, _tokenOut];
+    const path = 
+    !_tokenIn || !_tokenOut
+    ? [ethers.constants.AddressZero, ethers.constants.AddressZero] :
+    (_tokenIn != address.weth && _tokenOut != address.weth)
+    ? [_tokenIn, address.weth, _tokenOut] : [_tokenIn, _tokenOut];
 
     const {value, error} = 
         useCall(path && _sponsor && {
@@ -50,4 +50,5 @@ export function _isSponsoredPath(
    }
 
     return value?.[0]
+
 }

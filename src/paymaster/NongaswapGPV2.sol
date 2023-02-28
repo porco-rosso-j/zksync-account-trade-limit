@@ -5,7 +5,7 @@ import {IPaymaster, ExecutionResult, PAYMASTER_VALIDATION_SUCCESS_MAGIC} from "z
 import {TransactionHelper, Transaction} from "zksync-contracts/libraries/TransactionHelper.sol";
 import {BOOTLOADER_FORMAL_ADDRESS} from "zksync-contracts/Constants.sol";
 
-import {BytesLib} from "./lib/BytesLib.sol";
+import {SwapArgDecoder} from "./lib/SwapArgDecoder.sol";
 import {NongaswapGPV2Storage} from "./NongaswapGPV2Storage.sol";
 import {GasPondHelper} from "./helpers/GasPondHelper.sol";
 import {GasPondTokenHelper} from "./helpers/GasPondTokenHelper.sol";
@@ -17,7 +17,7 @@ contract NongaswapGPV2 is
     GasPondTokenHelper
 {
     using TransactionHelper for Transaction;
-    using BytesLib for bytes;
+    using SwapArgDecoder for bytes;
 
     modifier onlyBootloader() {
         require(msg.sender == BOOTLOADER_FORMAL_ADDRESS, "NOT_BOOTLOADER");
@@ -75,6 +75,11 @@ contract NongaswapGPV2 is
     {
         magic = PAYMASTER_VALIDATION_SUCCESS_MAGIC;
 
+        require(
+            address(uint160(_transaction.paymaster)) == address(this),
+            "INVALID_PAYMASTER"
+        );
+
         require(_transaction.paymasterInput.length >= 4, "INVALID_BYTE_LENGTH");
 
         require(
@@ -123,11 +128,7 @@ contract NongaswapGPV2 is
             "INSUFFICIENT_SPONSOR_BALANCE"
         );
 
-        _validateSwapAsset(
-            sponsorAddr,
-            _transaction.data,
-            _transaction.reserved[0]
-        );
+        _validateSwapAsset(sponsorAddr, _transaction.data, _transaction.value);
 
         _validateLimit(
             sponsorAddr,
@@ -179,27 +180,17 @@ contract NongaswapGPV2 is
 
     function _validateSwapAsset(
         address _sponsorAddr,
-        bytes memory _data,
+        bytes calldata _data,
         uint256 _value
     ) internal view {
-        Sponsor storage sponsor = sponsors[_sponsorAddr];
-
         address[] memory path;
         if (_value != 0) {
-            (, path, , ) = BytesLib.decodeSwapETHArgs(_data);
+            (, path, , ) = SwapArgDecoder._decodeSwapETHArgs(_data);
         } else {
-            (, , path, , ) = BytesLib.decodeSwapArgs(_data);
+            (, , path, , ) = _data.decodeSwapArgs();
         }
-
-        bool isSupported;
-        for (uint256 i; i < path.length; i++) {
-            isSupported = sponsor.isSupportedSwapAsset[path[i]];
-            if (isSupported) break;
-        }
-
-        if (!isSupported) revert("NOT_SUPPORTED_ASSET");
-
-        return;
+        bool isSupported = isSponsoredPath(path, _sponsorAddr);
+        require(isSupported, "NOT_SUPPORTED_ASSET");
     }
 
     // if enabled, holders of certain assets like a governance token or a NFT
@@ -233,7 +224,6 @@ contract NongaswapGPV2 is
                 }
             }
         }
-        return;
     }
 
     function _validateLimit(

@@ -57,7 +57,7 @@ export default function Trade() {
   const [quotedExchangeRate, setQuotedExchangeRate] = useState<number>(0);
   const [disabled, setDisabled] = useState<boolean>(false);
 
-  const provider = new Provider(ZkSyncLocal.rpcUrl);
+  // const provider = new Provider(ZkSyncLocal.rpcUrl);
   const signer = (new Web3Provider(window.ethereum)).getSigner();
   const txnOpts: TransactionOptions | undefined = signer
     ? { signer: signer }
@@ -136,8 +136,8 @@ export default function Trade() {
    isNativeTokenOut === false
      ? tokenOut?.getAddressFromEncodedTokenName() : address.weth,  
     address.sponsor1, 
-    account as string
-    )
+    account as string 
+    ) //: false;
   
   const isSwapSponsored = pathSponsored ? pathSponsored : false;
 

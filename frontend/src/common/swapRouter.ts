@@ -6,7 +6,8 @@ import {address} from "./address"
 
 let router: UniswapV2Router
 
-const provider = new Provider("http://localhost:3050");
+const gasLimit = ethers.utils.hexlify(1000000)
+const provider = new Provider("http://localhost:3050", 270);;
 const signer = (new Web3Provider(window.ethereum)).getSigner();
 router = <UniswapV2Router>(new Contract(address.router, routerArtifact.abi, signer))
 
@@ -96,10 +97,13 @@ const customData = {
 export async function _swapETHForTokenSponsored(
     tokenOut:string | undefined, 
     quantity: BigInt, 
-    to:string | undefined):Promise<any> {
+    to:string | undefined):Promise<any> 
+    {
 
     const path = [address.weth, tokenOut as string]
     const quote = await router.callStatic.getAmountsOut(BigNumber.from(quantity), path)
+
+    console.log("customData: ", customData.paymasterParams.paymaster)
 
     const gasLimit = await router.estimateGas.swapExactETHForTokens(
         quote[1], 
@@ -123,6 +127,7 @@ export async function _swapETHForTokenSponsored(
             maxPriorityFeePerGas: ethers.BigNumber.from(0),
             customData: customData,
             gasLimit:gasLimit
+            //gasLimit: 
         }
     )
 

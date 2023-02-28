@@ -17,15 +17,12 @@ import { ethers } from "ethers";
         } as types.Eip712Meta,
       };
 
-     // console.log("2")
-
       tx.gasPrice = await provider.getGasPrice(); 
       if ( tx.gasLimit == undefined) {
        //  console.log("4")
           //tx.gasLimit = await provider.estimateGas(tx)
           tx.gasLimit = ethers.utils.hexlify(1000000)
       }
-    //  console.log("3")
 
     const signedTxHash = EIP712Signer.getSignedDigest(tx);
     const signature = ethers.utils.arrayify(ethers.utils.joinSignature(user._signingKey().signDigest(signedTxHash)))
@@ -34,9 +31,6 @@ import { ethers } from "ethers";
       ...tx.customData,
       customSignature: signature,
     };
-
-    //console.log("signature: ", signature)
-    //console.log("tx: ", tx)
 
     return await provider.sendTransaction(utils.serialize(tx));
   }

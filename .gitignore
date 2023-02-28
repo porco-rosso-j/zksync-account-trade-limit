@@ -19,10 +19,9 @@
 /node_modules
 /out
 
-/test/uniswapV2/UniswapV2Router.spec.ts
-
 /local-setup
 /src/paymaster/doc/
+/src/tests/LibTest.sol
 /typechain-types
 
 .env

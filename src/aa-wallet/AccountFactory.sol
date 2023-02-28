@@ -3,8 +3,6 @@ pragma solidity ^0.8.0;
 import "zksync-contracts/Constants.sol";
 import "zksync-contracts/libraries/SystemContractsCaller.sol";
 
-// import "zksync-contracts/interfaces/IContractDeployer.sol";
-
 contract AccountFactory {
     bytes32 public accountBytecodeHash;
 
@@ -16,40 +14,22 @@ contract AccountFactory {
         external
         returns (address accountAddress)
     {
-        // (bool success, bytes memory returnData) = SystemContractsCaller
-        //     .systemCallWithReturndata(
-        //         uint32(gasleft()),
-        //         address(DEPLOYER_SYSTEM_CONTRACT),
-        //         uint128(0),
-        //         abi.encodeCall(
-        //             DEPLOYER_SYSTEM_CONTRACT.create2Account,
-        //             (
-        //                 salt,
-        //                 accountBytecodeHash,
-        //                 abi.encode(owner),
-        //                 IContractDeployer.AccountAbstractionVersion.Version1
-        //             )
-        //         )
-        //     );
-
-        // require(success, "Deployment Failed");
-        // (accountAddress) = abi.decode(returnData, (address));
-
-        bool success = SystemContractsCaller.systemCall(
-            uint32(gasleft()),
-            address(DEPLOYER_SYSTEM_CONTRACT),
-            uint128(0),
-            abi.encodeCall(
-                DEPLOYER_SYSTEM_CONTRACT.create2Account,
-                (
-                    salt,
-                    accountBytecodeHash,
-                    abi.encode(owner),
-                    IContractDeployer.AccountAbstractionVersion.Version1
+        (bool success, bytes memory returnData) = SystemContractsCaller
+            .systemCallWithReturndata(
+                uint32(gasleft()),
+                address(DEPLOYER_SYSTEM_CONTRACT),
+                uint128(0),
+                abi.encodeCall(
+                    DEPLOYER_SYSTEM_CONTRACT.create2Account,
+                    (
+                        salt,
+                        accountBytecodeHash,
+                        abi.encode(owner),
+                        IContractDeployer.AccountAbstractionVersion.Version1
+                    )
                 )
-            )
-        );
-
-        //require(success, "Deployment Failed");
+            );
+        require(success, "Deployment Failed");
+        accountAddress = abi.decode(returnData, (address));
     }
 }

@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Flex,
+  Input,
   Link,
   Modal,
   ModalOverlay,
@@ -12,7 +13,9 @@ import {
   ModalCloseButton,
   Text,
   useColorMode,
+  VStack,
 } from "@chakra-ui/react";
+import { useState } from "react";
 import { ExternalLinkIcon, CopyIcon } from "@chakra-ui/icons";
 import { useEthers } from "@usedapp/core";
 import Identicon from "../Identicon";
@@ -29,6 +32,16 @@ export default function AccountModal({ isOpen, onClose }: Props) {
   function handleDeactivateAccount() {
     deactivate();
     onClose();
+  }
+  const [isContractAccount, connectContractAccount] = useState<boolean>(false);
+  const [contractAccount, SetContractAccount] = useState<string>("");
+
+  function SwitchToContractAccount() {
+    connectContractAccount(true);
+  }
+
+  function PassContractAccountAddress(address:string) {
+    SetContractAccount(address);
   }
 
   return (
@@ -73,12 +86,12 @@ export default function AccountModal({ isOpen, onClose }: Props) {
                 fontSize="0.81rem"
                 fontWeight="normal"
                 borderColor="rgb(236, 236, 236)"
-                color="rgb(213, 0, 102)"
+                color="rgb(30, 114, 32)"
                 px={2}
                 h="1.62rem"
                 _hover={{
                   background: "none",
-                  borderColor: "rgb(213, 0, 102)",
+                  borderColor: "rgb(56, 165, 58)",
                   textDecoration: "underline",
                 }}
                 onClick={handleDeactivateAccount}>
@@ -138,15 +151,81 @@ export default function AccountModal({ isOpen, onClose }: Props) {
           bg= {colorMode === "dark" ? "black" : "white"}
           borderBottomLeftRadius="3xl"
           borderBottomRightRadius="3xl"
-          p={6}
+          //p={6}
         >
-          <Text
+                    <Box
+            borderRadius="3xl"
+            border="0.06rem"
+            borderStyle="solid"
+            borderColor="gray.300"
+            px={5}
+            pt={4}
+            pb={2}
+            mb={5}
+          >
+          {/* <Button
+            color={colorMode === "dark" ? "white" : "black"}
+            fontWeight="small"
+            fontSize="md"
+          >
+           Connect with Contract Account 
+          </Button> */}
+        <VStack  align='stretch' spacing={5} mb={3}>
+        <Button
+                variant="outline"
+                size="medium"
+                borderRadius="3xl"
+                fontSize="1.0rem"
+                fontWeight="normal"
+                borderColor="rgb(236, 236, 236)"
+                color="rgb(30, 114, 32)"
+                px={58}
+                py={5}
+                h="1.62rem"
+                _hover={{
+                  background: "none",
+                  borderColor: "rgb(56, 165, 58)",
+                  textDecoration: "underline",
+                }}
+                onClick={SwitchToContractAccount}>
+                 Connect with Contract Account
+          </Button>
+          <Input
+          placeholder="0xYZ12...789"
+          fontSize="md"
+          width="100%"
+          size="50rem"
+          textAlign="center"
+          borderColor="rgb(236, 236, 236)"
+          focusBorderColor="blue"
+          borderWidth= "1px"
+          type="string"
+          color={colorMode === "dark" ? "white" : "black"}
+
+          onChange={async function (e) {
+            if (
+              e.target.value !== undefined 
+              && isContractAccount !== false
+              // isAccount controlled by signer.
+            ) {
+              PassContractAccountAddress(e.target.value);
+            } else {
+              console.log(
+                "Invalid Address"
+              );
+            }
+          }}
+          />
+          
+              </VStack>
+              </Box>
+          {/* <Text
             color={colorMode === "dark" ? "white" : "black"}
             fontWeight="medium"
             fontSize="md"
           >
             Your transactions willl appear here...
-          </Text>
+          </Text> */}
         </ModalFooter>
       </ModalContent>
     </Modal>

@@ -1,10 +1,6 @@
 pragma solidity ^0.8.0;
 
-import "./BytesLib.sol";
-
 contract Multisend {
-    using BytesLib for bytes;
-
     enum Operation {
         Call,
         Delegatecall
