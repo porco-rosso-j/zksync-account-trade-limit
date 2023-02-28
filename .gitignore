@@ -7,6 +7,7 @@
 /deploy/deployUniswapV2.ts
 /deploy/dusts.ts
 /deploy/script.ts
+/deploy/script1.ts
 
 /frontend/artifacts-zk
 /frontend/node_modules
@@ -20,6 +21,8 @@
 /out
 
 /local-setup
+
+/src/aa-wallet/modules/SwapLimit.sol
 /src/paymaster/doc/
 /src/tests/LibTest.sol
 /typechain-types
