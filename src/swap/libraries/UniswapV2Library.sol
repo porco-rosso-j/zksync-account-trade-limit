@@ -28,11 +28,14 @@ library UniswapV2Library {
         address factory,
         address tokenA,
         address tokenB
-    ) internal pure returns (address pair) {
+    ) internal view returns (address pair) {
         (address token0, address token1) = sortTokens(tokenA, tokenB);
         pair = IContractDeployer(DEPLOYER_SYSTEM_CONTRACT).getNewAddressCreate2(
                 factory,
-                hex"010003c55bc478c9c7dbdbb47eaa631527a262bc06def32404c2692ef37b18e7",
+                //hex"010003c55bc478c9c7dbdbb47eaa631527a262bc06def32404c2692ef37b18e7",
+                //hex"010003a594b0cd8fe6ed8d4129a711d73b78d9952997d87fdacb941c1393d497",
+                //hex"0100039b6f9f6ec5249b7a0b4354c704bd7c848387409801b1209b5a9617e93b",
+                IUniswapV2Factory(factory).PAIR_HASH(),
                 keccak256(abi.encodePacked(token0, token1)),
                 new bytes(0)
             );

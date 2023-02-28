@@ -27,9 +27,9 @@ export async function deployUniswap (hre: HardhatRuntimeEnvironment):Promise<any
    const dai = await deployer.deploy(tknArtifact, ["DAI Stablecoin", "DAI", 18])
    console.log(`dai: "${dai.address}",`);
 
-   // Deploy Mock LUSD
-   const lusd = await deployer.deploy(tknArtifact, ["Liquity USD", "LUSD", 18])
-   console.log(`lusd: "${lusd.address}",`);
+//    // Deploy Mock LUSD
+//    const lusd = await deployer.deploy(tknArtifact, ["Liquity USD", "LUSD", 18])
+//    console.log(`lusd: "${lusd.address}",`);
 
     // Deploy Factory with pair bytecode
     const pairBytecodeHash = utils.hashBytecode(pairArtifact.bytecode);
@@ -43,7 +43,7 @@ export async function deployUniswap (hre: HardhatRuntimeEnvironment):Promise<any
     // Instanciate Contracts
     const routerContract = new ethers.Contract(router.address, routerArtifact.abi, wallet)
     const daiContract = new ethers.Contract(dai.address, tknArtifact.abi, wallet)
-    const lusdContract = new ethers.Contract(lusd.address, tknArtifact.abi, wallet)
+    //const lusdContract = new ethers.Contract(lusd.address, tknArtifact.abi, wallet)
     const wethContract = new ethers.Contract(weth.address, wethArtifact.abi, wallet)
     const factoryContract = new ethers.Contract(factory.address, factoryArtifact.abi, wallet)
     
@@ -56,13 +56,13 @@ export async function deployUniswap (hre: HardhatRuntimeEnvironment):Promise<any
     //console.log("DAI balance: ", (await daiContract.balanceOf(wallet.address)).toString())
 
     // Mint lusd
-    await (await lusdContract.mint(wallet.address, toBN("2000000"))).wait()
+    // await (await lusdContract.mint(wallet.address, toBN("2000000"))).wait()
     //console.log("lusd balance: ", (await lusdContract.balanceOf(wallet.address)).toString())
 
     // Approve Router
     await (await wethContract.approve(router.address, ethers.constants.MaxUint256)).wait()
     await (await daiContract.approve(router.address, ethers.constants.MaxUint256)).wait()
-    await (await lusdContract.approve(router.address, ethers.constants.MaxUint256)).wait()
+    // await (await lusdContract.approve(router.address, ethers.constants.MaxUint256)).wait()
 
     // Add Liquidity
     let tx = await routerContract.addLiquidity(
@@ -83,22 +83,22 @@ export async function deployUniswap (hre: HardhatRuntimeEnvironment):Promise<any
     //console.log("DAI in Pool: ", (await daiContract.balanceOf(pair_address)).toString())
 
     // Add Liquidity
-    let tx2 = await routerContract.addLiquidity(
-        weth.address,
-        lusd.address, 
-        toBN("500"),  // LUSD/WETH == 2000
-        toBN("1000000"), 
-        0,
-        0, 
-        wallet.address, 
-        ethers.constants.MaxUint256, 
-       {gasLimit: ethers.BigNumber.from(1000000)}
-    )
-    await tx2.wait()
+    // let tx2 = await routerContract.addLiquidity(
+    //     weth.address,
+    //     lusd.address, 
+    //     toBN("500"),  // LUSD/WETH == 2000
+    //     toBN("1000000"), 
+    //     0,
+    //     0, 
+    //     wallet.address, 
+    //     ethers.constants.MaxUint256, 
+    //    {gasLimit: ethers.BigNumber.from(1000000)}
+    // )
+    // await tx2.wait()
     
-    const pair_address2 = await factoryContract.getPair(weth.address, lusd.address)
+    // const pair_address2 = await factoryContract.getPair(weth.address, lusd.address)
     //console.log("WETH in Pool: ", (await wethContract.balanceOf(pair_address2)).toString())
     //console.log("LUSD in Pool: ", (await lusdContract.balanceOf(pair_address2)).toString())
 
-    return [weth.address, router.address]
+    return [wethContract, routerContract, daiContract]
 }
