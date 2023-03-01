@@ -14,6 +14,7 @@ type Props = {
   startSwap: any;
   approveToken: any;
   disabled: boolean;
+  isCA: boolean;
 };
 
 export default function SwapButton({
@@ -26,6 +27,7 @@ export default function SwapButton({
   startSwap,
   approveToken,
   disabled,
+  isCA
 }: Props) {
   const { account, chainId, switchNetwork, activateBrowserWallet, error } =
     useEthers();
@@ -44,8 +46,8 @@ export default function SwapButton({
   return account && isCorrectChainId ? (
     // areTokensSelected && areQuantitiesHighEnough && hasSufficientApproval ? (
     areTokensSelected && userHasSufficientBalance && isNonZeroQuantity ? (
-      userHasSufficcientAllowance ? ( 
-        isSwapSponsored ? (
+      userHasSufficcientAllowance || isCA ? ( 
+        isSwapSponsored && !isCA ? (
           <Box mt="0.5rem">
           <Button
             onClick={() => {

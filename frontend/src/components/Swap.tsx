@@ -23,7 +23,7 @@ import {
 } from "@usedapp/core";
 
 import { BigNumber, constants, Contract } from 'ethers';
-import { Web3Provider, Provider } from 'zksync-web3';
+import { Web3Provider } from 'zksync-web3';
 
 import SwapButton from "./SwapButton";
 import TokenSelect from "./TokenSelect";
@@ -37,14 +37,22 @@ import {
   _swapTokenForToken,
   _swapETHForTokenSponsored, 
   _swapTokenForETHSponsored,
-  _swapTokenForTokenSponsored
+  _swapTokenForTokenSponsored,
+  _swapETHForTokenAA,
+  _swapTokenForETHAA,
+  _swapTokenForTokenAA
 } from "../common/swapRouter"
 
 import { _isSponsoredPath } from "../common/gasPond"
 import { address } from "../common/address"
 import { ZkSyncLocal } from "../common/zkSyncLocal";
 
-export default function Trade() {
+type Props = {
+  CAAddress: string
+  isCA: any
+};
+
+export default function Trade({CAAddress, isCA} : Props) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { account, chainId } = useEthers();
   const { colorMode } = useColorMode();
@@ -78,13 +86,13 @@ export default function Trade() {
   const isNativeTokenOut =
   tokenOut?.getAddressFromEncodedTokenName() === "native";
   
-  const etherBalance = useEtherBalance(account);
+  const etherBalance = useEtherBalance((isCA ? CAAddress: account));
 
   const tokenInErc20Balance: BigNumber | undefined = useTokenBalance(
     isNativeTokenIn === false
       ? tokenIn?.getAddressFromEncodedTokenName()
       : undefined,
-    account
+      isCA ? CAAddress : account
   );
 
   const tokenInBalance = 
@@ -105,7 +113,7 @@ export default function Trade() {
     isNativeTokenOut === false
       ? tokenOut?.getAddressFromEncodedTokenName()
       : undefined,
-    account
+      isCA ? CAAddress : account
   );
 
   const tokenOutBalance =
@@ -122,7 +130,7 @@ export default function Trade() {
   const tokenInAllowance = useTokenAllowance(
     isNativeTokenIn === false 
         ? tokenIn?.getAddressFromEncodedTokenName() : undefined,
-        account as string,
+        isCA ? CAAddress : account as string,
         address.router
   )
 
@@ -136,13 +144,11 @@ export default function Trade() {
    isNativeTokenOut === false
      ? tokenOut?.getAddressFromEncodedTokenName() : address.weth,  
     address.sponsor1, 
-    account as string 
+    isCA ? CAAddress : account as string 
     ) //: false;
   
   const isSwapSponsored = pathSponsored ? pathSponsored : false;
-
   const activatedIsTokenModal = useRef(true); 
-
 
   // ERC20 & Approval 
   const erc20Contract: any =
@@ -177,6 +183,13 @@ export default function Trade() {
           tokenInQuantity,
           account
         )
+      } else if (isCA) {
+        tx = await _swapETHForTokenAA(
+          tokenOutAddress, 
+          tokenInQuantity,
+          CAAddress
+        )
+      
       } else {
         tx = await _swapETHForToken(
           tokenOutAddress, 
@@ -192,6 +205,13 @@ export default function Trade() {
           tokenInQuantity,
           account
         ) 
+      } else if (isCA) {
+        tx = await _swapTokenForETHAA(
+          tokenOutAddress, 
+          tokenInQuantity,
+          CAAddress
+        )
+      
       } else {
         tx = await _swapTokenForETH(
           tokenInAddress,
@@ -207,6 +227,13 @@ export default function Trade() {
           tokenInQuantity,
           account
         ) 
+      } else if (isCA) {
+        tx = await _swapTokenForTokenAA(
+          tokenInAddress, 
+          tokenOutAddress,
+          tokenInQuantity,
+          CAAddress
+        )
       } else {
         tx = await _swapTokenForToken(
           tokenInAddress,
@@ -217,8 +244,10 @@ export default function Trade() {
       } 
     }
 
-    receipt= await tx.wait()
+    receipt = await tx.wait()
     console.log("swap transaction receipt =", receipt);
+
+    //console.log("balance: ", (await erc20Contract.connect(signer).balanceOf(CAAddress).toString()))
     setDisabled(false);
   }
 
@@ -491,6 +520,7 @@ export default function Trade() {
           startSwap={startSwap}
           approveToken={approveToken}
           disabled={disabled}
+          isCA={isCA}
         />
       </Box>
     </Box>

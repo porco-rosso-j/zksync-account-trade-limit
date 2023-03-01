@@ -15,16 +15,19 @@ import {
 
 import logo from "../assets/logo.svg";
 import AccountModal from "./Modal/AccountModal";
-import { SocialIcon } from "react-social-icons";
 import ConnectButton from "./ConnectButton";
-// import TopNavBar from './NavBar'
-// import { Outlet } from "react-router-dom";
 
 type Props = {
   children?: ReactNode;
+  CAAddress: string;
+  setCAddress: any
+  setIsCA: any
+  isCA: any
+ // isOwner: boolean
 };
 
-export default function Layout({ children }: Props) {
+// 
+export default function Layout({ children, setCAddress, CAAddress, setIsCA, isCA }: Props) {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const { colorMode, toggleColorMode } = useColorMode();
   const [isDarkMode, setIsDarkMode] = useState(colorMode === "dark");
@@ -34,12 +37,6 @@ export default function Layout({ children }: Props) {
 
   function getFontSize() {
     return isScreenFullWidth ? "md" : "sm";
-  }
-
-  function getIconStyle() {
-    return isScreenFullWidth
-      ? { height: 35, width: 35 }
-      : { height: 30, width: 30 };
   }
 
   function getLogoSize() {
@@ -72,13 +69,18 @@ export default function Layout({ children }: Props) {
           >
             Switch to {isDarkMode ? "light" : "dark"} mode
           </Switch>
-          <ConnectButton handleOpenModal={onOpen} fontSize={getFontSize()} />
+          <ConnectButton handleOpenModal={onOpen} fontSize={getFontSize()} isCA={isCA} CAAddress={CAAddress} />
 
         </VStack>
 
         <AccountModal 
         isOpen={isOpen} 
-        onClose={onClose} 
+        onClose={onClose}
+        CAAddress={CAAddress}
+        setCAddress={setCAddress} 
+        setIsCA={setIsCA}
+        isCA={isCA}
+        //isOwner={isOwner}
         />
       </Flex>
     </Menu>

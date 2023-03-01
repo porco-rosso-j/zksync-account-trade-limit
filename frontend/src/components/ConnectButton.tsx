@@ -7,11 +7,13 @@ import Identicon from "./Identicon";
 type Props = {
   handleOpenModal: any;
   fontSize: string;
+  CAAddress: string;
+  isCA: boolean
 };
 
-export default function ConnectButton({ handleOpenModal, fontSize }: Props) {
+export default function ConnectButton({ handleOpenModal, fontSize, CAAddress, isCA }: Props) {
   const { activateBrowserWallet, account } = useEthers();
-  const etherBalance = useEtherBalance(account);
+  const etherBalance = useEtherBalance((isCA ? CAAddress: account));
   const {colorMode } = useColorMode();
   //const nativeTokenName = "ETH";
 
@@ -44,6 +46,16 @@ export default function ConnectButton({ handleOpenModal, fontSize }: Props) {
         px={3}
         h="2.37rem"
       >
+        {isCA ? (
+        <Text color={colorMode === "dark" ? "white" : "black"} fontSize={fontSize} fontWeight="medium" mr="2">
+        {CAAddress &&
+          `${CAAddress.slice(0, 6)}...${CAAddress.slice(
+            CAAddress.length - 4,
+            CAAddress.length
+          )}`}
+      </Text>
+        ) 
+        : (
         <Text color={colorMode === "dark" ? "white" : "black"} fontSize={fontSize} fontWeight="medium" mr="2">
           {account &&
             `${account.slice(0, 6)}...${account.slice(
@@ -51,6 +63,7 @@ export default function ConnectButton({ handleOpenModal, fontSize }: Props) {
               account.length
             )}`}
         </Text>
+        )}
         <Identicon />
       </Button>
     </Flex>

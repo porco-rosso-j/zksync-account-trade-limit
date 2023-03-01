@@ -15,7 +15,7 @@ import {
   useColorMode,
   VStack,
 } from "@chakra-ui/react";
-import { useState } from "react";
+
 import { ExternalLinkIcon, CopyIcon } from "@chakra-ui/icons";
 import { useEthers } from "@usedapp/core";
 import Identicon from "../Identicon";
@@ -23,26 +23,28 @@ import Identicon from "../Identicon";
 type Props = {
   isOpen: any;
   onClose: any;
+  CAAddress: string;
+  setCAddress:any;
+  setIsCA: any;
+  isCA: boolean;
+  //isOwner: boolean;
 };
 
-export default function AccountModal({ isOpen, onClose }: Props) {
+export default function AccountModal({ isOpen, onClose, setCAddress, CAAddress, setIsCA, isCA }: Props) {
   const { account, deactivate } = useEthers();
   const {colorMode } = useColorMode();
 
   function handleDeactivateAccount() {
     deactivate();
     onClose();
-  }
-  const [isContractAccount, connectContractAccount] = useState<boolean>(false);
-  const [contractAccount, SetContractAccount] = useState<string>("");
-
-  function SwitchToContractAccount() {
-    connectContractAccount(true);
+    if (isCA) {
+      setIsCA(false)
+    }
   }
 
-  function PassContractAccountAddress(address:string) {
-    SetContractAccount(address);
-  }
+  // function _setCAddress(address:string) {
+  //   setCAddress(address)
+  // }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
@@ -76,9 +78,15 @@ export default function AccountModal({ isOpen, onClose }: Props) {
             mb={3}
           >
             <Flex justifyContent="space-between" alignItems="center" mb={3}>
+            {isCA ? (
+              <Text color={colorMode === "dark" ? "rgb(180,180,180)" : "gray"} fontSize="sm">
+              Connected with Contract Account
+              </Text>
+            ) : (
               <Text color={colorMode === "dark" ? "rgb(180,180,180)" : "gray"} fontSize="sm">
                 Connected with MetaMask
-              </Text>
+                </Text>
+            ) }
               <Button
                 variant="outline"
                 size="sm"
@@ -98,6 +106,7 @@ export default function AccountModal({ isOpen, onClose }: Props) {
                 Change
               </Button>
             </Flex>
+
             <Flex alignItems="center" mt={2} mb={4} lineHeight={1}>
               <Identicon />
               <Text
@@ -106,11 +115,19 @@ export default function AccountModal({ isOpen, onClose }: Props) {
                 fontWeight="semibold"
                 ml="2"
                 lineHeight="1.1">
-                {account &&
+                {isCA ? (
+                  CAAddress &&
+                   `${CAAddress.slice(0, 6)}...${CAAddress.slice(
+                    CAAddress.length - 4,
+                    CAAddress.length
+                    )}`
+                ) : (
+                  account &&
                   `${account.slice(0, 6)}...${account.slice(
                     account.length - 4,
                     account.length
-                  )}`}
+                  )}`
+                )}
               </Text>
             </Flex>
             <Flex alignContent="center" m={3}>
@@ -146,6 +163,8 @@ export default function AccountModal({ isOpen, onClose }: Props) {
           </Box>
         </ModalBody>
 
+        {!isCA ? (
+        
         <ModalFooter
           justifyContent="flex-start"
           bg= {colorMode === "dark" ? "black" : "white"}
@@ -163,14 +182,8 @@ export default function AccountModal({ isOpen, onClose }: Props) {
             pb={2}
             mb={5}
           >
-          {/* <Button
-            color={colorMode === "dark" ? "white" : "black"}
-            fontWeight="small"
-            fontSize="md"
-          >
-           Connect with Contract Account 
-          </Button> */}
-        <VStack  align='stretch' spacing={5} mb={3}>
+        
+          <VStack  align='stretch' spacing={5} mb={3} >
         <Button
                 variant="outline"
                 size="medium"
@@ -187,7 +200,9 @@ export default function AccountModal({ isOpen, onClose }: Props) {
                   borderColor: "rgb(56, 165, 58)",
                   textDecoration: "underline",
                 }}
-                onClick={SwitchToContractAccount}>
+                onClick={async function()  {
+                  setIsCA({isCA: !isCA})
+                }} >
                  Connect with Contract Account
           </Button>
           <Input
@@ -201,14 +216,18 @@ export default function AccountModal({ isOpen, onClose }: Props) {
           borderWidth= "1px"
           type="string"
           color={colorMode === "dark" ? "white" : "black"}
-
+          
           onChange={async function (e) {
+            {console.log("e.target.value: ", e.target.value)}
+            //const isOwner : boolean | undefined = _isAccountOwner(e.target.value, account)
             if (
               e.target.value !== undefined 
-              && isContractAccount !== false
-              // isAccount controlled by signer.
+              && !isCA
+              //&& isOwner
+              //0x6BF1419298C24818a8788547b35489d07C994De0
             ) {
-              PassContractAccountAddress(e.target.value);
+              {console.log("setCAddress? ")}
+              setCAddress(e.target.value);
             } else {
               console.log(
                 "Invalid Address"
@@ -217,8 +236,8 @@ export default function AccountModal({ isOpen, onClose }: Props) {
           }}
           />
           
-              </VStack>
-              </Box>
+          </VStack>
+          </Box>
           {/* <Text
             color={colorMode === "dark" ? "white" : "black"}
             fontWeight="medium"
@@ -227,6 +246,8 @@ export default function AccountModal({ isOpen, onClose }: Props) {
             Your transactions willl appear here...
           </Text> */}
         </ModalFooter>
+        ) : ( null
+        )}
       </ModalContent>
     </Modal>
   );

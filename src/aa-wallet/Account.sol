@@ -133,7 +133,7 @@ contract Account is IAccount, IERC1271, Multisend {
 
     function _executeTransaction(Transaction calldata _transaction) internal {
         address to = address(uint160(_transaction.to));
-        uint256 value = _transaction.reserved[1];
+        uint256 value = _transaction.value;
         bytes memory data = _transaction.data;
 
         if (modules[to] && value == 0) {

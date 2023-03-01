@@ -7,7 +7,7 @@ import { rich_wallet } from "./utils/rich-wallet"
 import {sendTx}  from "./utils/sendAATransaction"
 import {deployUniswap} from './deployUniswap';
 import {deployMulticall} from './deployMulticall';
-// import {deployGasPond} from './deployGasPond';
+import {deployGasPond} from './deployGasPond';
 
 // Deploy function
 export default async function deployAccount (hre: HardhatRuntimeEnvironment) {
@@ -44,12 +44,12 @@ export default async function deployAccount (hre: HardhatRuntimeEnvironment) {
 
     //console.log("accountContract owner: ", await accountContract.owner())
 
-    await (await wallet.sendTransaction({to: accountAddr, value:toBN("10")})).wait();
+    await (await wallet.sendTransaction({to: accountAddr, value:toBN("100")})).wait();
 
     // // Deploy Uniswap
     const [wethContract, routerContract, daiContract] = await deployUniswap(hre)
     await deployMulticall(hre)
-    //await deployGasPond(hre, wethContract.address, routerContract.address)
+    await deployGasPond(hre, wethContract.address, routerContract.address)
 
     // Deploy Oracle
     const oracleArtifact = await deployer.loadArtifact("Oracle");
@@ -88,16 +88,16 @@ export default async function deployAccount (hre: HardhatRuntimeEnvironment) {
     //console.log("isAccountEnabled: ", await swapModuleBase.isAccountEnabled(accountContract.address))
 
     // check trade size
-    //const amountIn = toBN("1")
+    const amountIn = toBN("1")
     //console.log("trade size: ", await swapModuleBase.tradeSize(wethContract.address, amountIn))
 
-    // Swap
-    // const path = [wethContract.address, daiContract.address]
-    // let tx1 = await swapModule.populateTransaction.swapETHForToken(amountIn, path);
-    // const txReceipt1 = await sendTx(provider, accountContract, wallet, tx1)
-    // await txReceipt1.wait()
+    //Swap
+    const path = [wethContract.address, daiContract.address]
+    let tx1 = await swapModule.populateTransaction.swapETHForToken(amountIn, path);
+    const txReceipt1 = await sendTx(provider, accountContract, wallet, tx1)
+    await txReceipt1.wait()
 
-    //console.log("dai balance in account: ", (await daiContract.balanceOf(accountContract.address)).toString())
+    console.log("dai balance in account: ", (await daiContract.balanceOf(accountContract.address)).toString())
 }
 
 
