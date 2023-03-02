@@ -22,8 +22,7 @@
 
 /local-setup
 
-/src/aa-wallet/modules/SwapLimit.sol
-/src/paymaster/doc/
+/src/aa-wallet/modules/swapModule/SwapLimit.sol
 /src/tests/LibTest.sol
 /typechain-types
 

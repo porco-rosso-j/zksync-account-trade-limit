@@ -34,26 +34,26 @@ abstract contract GasPondHelper {
         require(token != address(0), "INAVLID_ADDRESS");
         require(allowance != 0, "INVALID_AMOUNT");
 
-        (address sponsorAddr, ) = abi.decode(input, (address, address));
-        require(sponsorAddr != address(0), "INAVLID_ADDRESS");
-
+        address sponsorAddr = _getSponsorAddr(input);
         return (token, allowance, sponsorAddr);
     }
 
     function _getGeneralParams(bytes memory _data)
         internal
         pure
-        returns (address, address)
+        returns (address)
     {
         bytes memory input = abi.decode(_data, (bytes));
+        return _getSponsorAddr(input);
+    }
 
-        (address sponsorAddr, address ownedAsset) = abi.decode(
-            input,
-            (address, address)
-        );
-
+    function _getSponsorAddr(bytes memory _input)
+        internal
+        pure
+        returns (address)
+    {
+        address sponsorAddr = abi.decode(_input, (address));
         require(sponsorAddr != address(0), "INAVLID_ADDRESS");
-
-        return (sponsorAddr, ownedAsset);
+        return sponsorAddr;
     }
 }

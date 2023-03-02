@@ -1,15 +1,13 @@
-import { Wallet, Provider, utils } from 'zksync-web3';
+import { Wallet, utils } from 'zksync-web3';
 import { ethers} from "ethers";
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
 import { Deployer } from '@matterlabs/hardhat-zksync-deploy';
-import { rich_wallet } from "./utils/rich-wallet"
 import { toBN } from "./utils/helper";
 
 // Deploy function
-export async function deployUniswap (hre: HardhatRuntimeEnvironment):Promise<any> {
-    const provider = new Provider("http://localhost:3050", 270);;
-    const wallet = new Wallet(rich_wallet[0].privateKey, provider);
-    const deployer = new Deployer(hre, wallet);
+export async function deployUniswap (
+    wallet: Wallet,
+    deployer: Deployer
+    ):Promise<any> {
 
     const wethArtifact = await deployer.loadArtifact('WETH9');
     const tknArtifact = await deployer.loadArtifact('MockTKN');
@@ -98,5 +96,5 @@ export async function deployUniswap (hre: HardhatRuntimeEnvironment):Promise<any
     //console.log("WETH in Pool: ", (await wethContract.balanceOf(pair_address2)).toString())
     //console.log("LUSD in Pool: ", (await lusdContract.balanceOf(pair_address2)).toString())
 
-    return [wethContract, routerContract, daiContract]
+    return [wethContract, routerContract, daiContract, lusdContract]
 }

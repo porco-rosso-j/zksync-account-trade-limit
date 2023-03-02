@@ -2,9 +2,18 @@
 
 pragma solidity ^0.8.0;
 
-import "../../swap/UniswapV2Router.sol";
-import "../../swap/test/WETH9.sol";
+import "../../../swap/UniswapV2Router.sol";
+import "../../../swap/test/WETH9.sol";
 import "./SwapModuleBase.sol";
+
+/*
+
+SwapModuleUniV2: Execute transactions delegatecalled from Account contracts
+- auto-approve erc20 token when account doesn't have enough allowance.
+- only support swapExact*** methods for the sake of simplicity.
+- 
+
+*/
 
 contract SwapModuleUniV2 {
     IUniswapV2Router public immutable swapRouter;
@@ -48,7 +57,7 @@ contract SwapModuleUniV2 {
         );
         uint256 amountOutIndex = expectdAmountOut.length - 1;
 
-        approve(_path[0], _tokenInAmount);
+        approveToken(_path[0], _tokenInAmount);
 
         swapRouter.swapExactTokensForETH(
             _tokenInAmount,
@@ -71,7 +80,7 @@ contract SwapModuleUniV2 {
         );
         uint256 amountOutIndex = expectdAmountOut.length - 1;
 
-        approve(_path[0], _tokenInAmount);
+        approveToken(_path[0], _tokenInAmount);
 
         swapRouter.swapExactTokensForTokens(
             _tokenInAmount,
@@ -82,11 +91,16 @@ contract SwapModuleUniV2 {
         );
     }
 
-    function depositWETH(address _token, uint256 _amount) public {
-        IWETH(_token).deposit{value: _amount}();
+    // depositWETH && withdrawWETH called when users convert eth<>weth, and vice versa.
+    function depositWETH(uint256 _amount) public {
+        IWETH(base.wethAddr()).deposit{value: _amount}();
     }
 
-    function approve(address _token, uint256 _amount) internal {
+    function withdrawWETH(uint256 _amount) public payable {
+        IWETH(base.wethAddr()).withdraw(_amount);
+    }
+
+    function approveToken(address _token, uint256 _amount) internal {
         uint256 allowance = IERC20(_token).allowance(
             address(this),
             address(swapRouter)

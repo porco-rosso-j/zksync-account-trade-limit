@@ -37,13 +37,16 @@ import {
   _swapTokenForToken,
   _swapETHForTokenSponsored, 
   _swapTokenForETHSponsored,
-  _swapTokenForTokenSponsored,
+  _swapTokenForTokenSponsored
+} from "../common/swapRouter"
+
+import {
   _swapETHForTokenAA,
   _swapTokenForETHAA,
   _swapTokenForTokenAA
-} from "../common/swapRouter"
+} from "../common/swapModule"
 
-import { _isSponsoredPath } from "../common/gasPond"
+import { _isGasPayablePath } from "../common/gasPond"
 import { address } from "../common/address"
 import { ZkSyncLocal } from "../common/zkSyncLocal";
 
@@ -138,7 +141,7 @@ export default function Trade({CAAddress, isCA} : Props) {
   ? tokenInAllowance?.toBigInt() >= tokenInQuantity
   : isNativeTokenIn === true;
 
-  const pathSponsored = _isSponsoredPath(
+  const erc20GasPayable = _isGasPayablePath(
    isNativeTokenIn === false
      ? tokenIn?.getAddressFromEncodedTokenName() : address.weth, 
    isNativeTokenOut === false
@@ -147,7 +150,7 @@ export default function Trade({CAAddress, isCA} : Props) {
     isCA ? CAAddress : account as string 
     ) //: false;
   
-  const isSwapSponsored = pathSponsored ? pathSponsored : false;
+  const isErc20GasPayable = erc20GasPayable ? erc20GasPayable : false;
   const activatedIsTokenModal = useRef(true); 
 
   // ERC20 & Approval 
@@ -177,19 +180,13 @@ export default function Trade({CAAddress, isCA} : Props) {
 
     setDisabled(true);
     if (tokenInAddress === "native") {
-      if (isSwapSponsored) {
-        tx = await _swapETHForTokenSponsored(
-          tokenOutAddress, 
-          tokenInQuantity,
-          account
-        )
-      } else if (isCA) {
+      if (isErc20GasPayable && isCA) {
         tx = await _swapETHForTokenAA(
           tokenOutAddress, 
           tokenInQuantity,
-          CAAddress
+          CAAddress,
+          false
         )
-      
       } else {
         tx = await _swapETHForToken(
           tokenOutAddress, 
@@ -199,19 +196,13 @@ export default function Trade({CAAddress, isCA} : Props) {
       }
 
     } else if (tokenOutAddress == "native") {
-      if (isSwapSponsored) {
-        tx = await _swapTokenForETHSponsored(
-          tokenInAddress,
-          tokenInQuantity,
-          account
-        ) 
-      } else if (isCA) {
+      if (isErc20GasPayable && isCA) {
         tx = await _swapTokenForETHAA(
-          tokenOutAddress, 
+          tokenInAddress, 
           tokenInQuantity,
-          CAAddress
+          CAAddress,
+          false
         )
-      
       } else {
         tx = await _swapTokenForETH(
           tokenInAddress,
@@ -220,19 +211,13 @@ export default function Trade({CAAddress, isCA} : Props) {
         )
       } 
     } else {
-      if (isSwapSponsored) {
-        tx = await _swapTokenForTokenSponsored(
-          tokenInAddress,
-          tokenOutAddress,
-          tokenInQuantity,
-          account
-        ) 
-      } else if (isCA) {
+      if (isErc20GasPayable && isCA) {
         tx = await _swapTokenForTokenAA(
           tokenInAddress, 
           tokenOutAddress,
           tokenInQuantity,
-          CAAddress
+          CAAddress,
+          false
         )
       } else {
         tx = await _swapTokenForToken(
@@ -514,7 +499,7 @@ export default function Trade({CAAddress, isCA} : Props) {
           tokenIn={tokenIn}
           areTokensSelected={tokenIn !== null && tokenOut !== null}
           isNonZeroQuantity={tokenInQuantity != BigInt(0)}
-          isSwapSponsored={isSwapSponsored}
+          isErc20GasPayable={isErc20GasPayable}
           userHasSufficientBalance={userHasSufficientBalance}
           userHasSufficcientAllowance={userHasSufficcientAllowance}
           startSwap={startSwap}

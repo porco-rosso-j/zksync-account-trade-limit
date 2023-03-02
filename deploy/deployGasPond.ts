@@ -1,42 +1,41 @@
 import { ethers} from "ethers";
-import { HardhatRuntimeEnvironment } from 'hardhat/types';
-import { Wallet, Provider } from 'zksync-web3';
+import { Wallet, Contract } from 'zksync-web3';
 import { Deployer } from '@matterlabs/hardhat-zksync-deploy';
 import { toBN } from "./utils/helper";
-import { rich_wallet } from "./utils/rich-wallet"
-// import {deployUniswap} from './deployUniswap';
-// import {deployMulticall} from './deployMulticall';
-// import { address } from "../frontend/src/common/address"
 
-// yarn hardhat deploy-zksync --script deploy/deployGasPond.ts
-
-// Deploy function
-export async function deployGasPond (hre: HardhatRuntimeEnvironment, weth_address:string, router_address:string) {
-    const provider = new Provider("http://localhost:3050", 270);;
-    const wallet = new Wallet(rich_wallet[0].privateKey, provider);
-    const deployer = new Deployer(hre, wallet);
-
-    // const weth_address = address.weth
-    // const router_address = address.router
-
-    //const [weth_address, router_address] = await deployUniswap(hre)
-    //await deployMulticall(hre)
+export async function deployGasPond (
+    wallet: Wallet,
+    deployer: Deployer,
+    // wethContract:Contract, 
+    // routerContract:Contract, 
+    // daiContract:Contract,
+    // swapModule:Contract,
+    // moduleManager:Contract
+    ) {
     
     // Deploy GasPond
-    const gaspondArtifact = await deployer.loadArtifact('NongaswapGPV2');
-    //const gasopnd = await deployer.deploy(gaspondArtifact, [weth_address, router_address])
-    // router_address = "0x5fE58d975604E6aF62328d9E505181B94Fc0718C"
-    // weth_address = "0x26b368C3Ed16313eBd6660b72d8e4439a697Cb0B"
-
-    const gasopnd = await deployer.deploy(gaspondArtifact, [router_address, weth_address])
+    const gaspondArtifact = await deployer.loadArtifact('GasPond');
+    //const gasopnd = await deployer.deploy(gaspondArtifact, [wethContract.address, routerContract.address, moduleManager.address])
+    const gasopnd = await deployer.deploy(gaspondArtifact, [
+        "0xc441A51e24f90aE9cA92C9d59A5Af2c3C6D5b0a7", 
+        "0xa4dA77909d77915d98F1c17e281Fa053E3052f40", 
+        "0xf8F54D9ffa6C6dd718F65054Ec795465cD978eae"
+    ])
     console.log(`gaspond: "${gasopnd.address}",`);
-
     const gasopndContract = new ethers.Contract(gasopnd.address, gaspondArtifact.abi, wallet)
 
     // Config GasPond
-    await (await gasopndContract.addRouter(router_address)).wait()
-    await (await gasopndContract.registerSponsor({value:toBN("10")})).wait()
-    await (await gasopndContract.setSponsoredSwapAsset([weth_address])).wait()
+    await (await gasopndContract.addModule(1)).wait()
+    await (await gasopndContract.registerSponsor({value:toBN("10")})).wait();
+    //await (await gasopndContract.enableSponsoringModules([swapModule.address])).wait();
+    await (await gasopndContract.enableSponsoringModules(["0x22d9Db989968296087f4A2aEA3203374FeD07704"])).wait();
+    await (await gasopndContract.setERC20PaymentInfo(
+       // daiContract.address,
+       "0x68e0b134A32516beF4d3baeEDc5bF1067bfADC49",
+        toBN("100"), // maxFee: 100 dai
+        toBN("0"), // minFee: 0 dai
+        toBN("0") // discountRate: 0 %
+    )).wait();
 
     // console.log("GasPond Sponsor ETH balance: ", (await gasopndContract.getSponsorETHBalance(wallet.address)).toString())
     // console.log("isValidRouter: ", (await gasopndContract.isValidRouter(router_address)))

@@ -10,38 +10,63 @@ import "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import "./libraries/Multisend.sol";
 import "./libraries/SignatureHelper.sol";
 import "./interfaces/IModule.sol";
+import "./interfaces/IModuleManager.sol";
 
 contract Account is IAccount, IERC1271, Multisend {
     using TransactionHelper for Transaction;
     using SignatureHelper for bytes;
 
     address public owner;
+    address public moduleManager;
+
     bytes4 constant EIP1271_SUCCESS_RETURN_VALUE = 0x1626ba7e;
 
-    mapping(address => bool) public modules;
+    mapping(address => bool) public isModule;
 
     modifier onlyBootloader() {
         require(msg.sender == BOOTLOADER_FORMAL_ADDRESS, "ONLY_BOOTOADER");
         _;
     }
 
-    modifier onlySelf() {
-        require(msg.sender == address(this), "ONLY_SELF");
+    modifier onlySelfOrOwner() {
+        require(
+            msg.sender == address(this) || msg.sender == owner,
+            "ONLY_SELF_OR_OWNER"
+        );
         _;
     }
 
-    constructor(address _owner) {
+    constructor(address _owner, address _moduleManager) {
         owner = _owner;
+        moduleManager = _moduleManager;
+        // deployer stores canonical moduleManager address and pass it to accounts at deployment
+        // moduleManager should be proxy contract
     }
 
     // ---------------------------------- //
-    //               Modules              //
+    //          Modules Add/Remove        //
     // ---------------------------------- //
 
-    function addModule(address _module, address _moduleBase) public onlySelf {
-        require(!modules[_module], "MODULE_ENABLED");
-        modules[_module] = true;
-        IModule(_moduleBase).addAccount(address(this));
+    function addModules(uint256[] memory _moduleIds) public onlySelfOrOwner {
+        for (uint256 i; i < _moduleIds.length; i++) {
+            (address module, address moduleBase) = IModuleManager(moduleManager)
+                .getModule(_moduleIds[i]);
+
+            require(!isModule[module], "MODULE_ENABLED");
+            IModule(moduleBase).addAccount(address(this));
+            isModule[module] = true;
+        }
+    }
+
+    function removeModules(uint256[] memory _moduleIds) public onlySelfOrOwner {
+        for (uint256 i; i < _moduleIds.length; i++) {
+            (address module, address moduleBase) = IModuleManager(moduleManager)
+                .getModule(_moduleIds[i]);
+
+            require(isModule[module], "MODULE_NOT_ENABLED");
+            IModule(moduleBase).removeAccount(address(this));
+            isModule[module] = false;
+        }
     }
 
     // ---------------------------------- //
@@ -99,20 +124,15 @@ contract Account is IAccount, IERC1271, Multisend {
     {
         magic = EIP1271_SUCCESS_RETURN_VALUE;
 
-        // if (_signature.length != 65) {
-        //     _signature = new bytes(65);
-        //     _signature[64] = bytes1(uint8(27));
-        // }
+        bytes memory signature = SignatureHelper.extractECDSASignature(
+            _signature
+        );
 
-        // bytes memory signature = SignatureHelper.extractECDSASignature(
-        //     _signature
-        // );
-
-        if (!SignatureHelper.checkValidECDSASignatureFormat(_signature)) {
+        if (!SignatureHelper.checkValidECDSASignatureFormat(signature)) {
             magic = bytes4(0);
         }
 
-        address recoveredAddr = ECDSA.recover(_hash, _signature);
+        address recoveredAddr = ECDSA.recover(_hash, signature);
 
         if (recoveredAddr != owner) {
             magic = bytes4(0);
@@ -136,7 +156,8 @@ contract Account is IAccount, IERC1271, Multisend {
         uint256 value = _transaction.value;
         bytes memory data = _transaction.data;
 
-        if (modules[to] && value == 0) {
+        // if call is to module, it must be a delegatecall
+        if (isModule[to]) {
             Address.functionDelegateCall(to, data);
         } else {
             Address.functionCallWithValue(to, data, value);

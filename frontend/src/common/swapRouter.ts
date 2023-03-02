@@ -2,7 +2,7 @@ import { ethers, BigNumber } from 'ethers';
 import { Provider, utils, Contract, Web3Provider, types, Signer } from 'zksync-web3';
 import { UniswapV2Router, SwapModuleUniV2 } from "../../../typechain-types"
 import {default as routerArtifact} from "artifacts/src/swap/UniswapV2Router.sol/UniswapV2Router.json"
-import {default as swapModuleArtifact} from "artifacts/src/aa-wallet/modules/SwapModuleUnV2.sol/SwapModuleUniV2.json"
+import {default as swapModuleArtifact} from "artifacts/src/aa-wallet/modules/swapModule/SwapModuleUnV2.sol/SwapModuleUniV2.json"
 import {address} from "./address"
 
 const gasLimit = ethers.utils.hexlify(1000000)
@@ -198,100 +198,4 @@ export async function _swapTokenForTokenSponsored(
     )
     
     return tx;
-}
-
-const swapModule = <SwapModuleUniV2>(new Contract(address.swapModule, swapModuleArtifact.abi, signer))
-
-async function getEIP712TxRequest(to:string, popTx:any):Promise<types.TransactionRequest> {
-    return {
-        from: to as string,
-        to: swapModule.address,
-        chainId: (await provider.getNetwork()).chainId,
-        maxFeePerGas: await provider.getGasPrice(),
-        nonce: await provider.getTransactionCount(to as string),
-        maxPriorityFeePerGas: BigNumber.from(0),
-        type: 113,
-        data: popTx.data as string,
-        customData: {
-            ergsPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
-        } as types.Eip712Meta,
-        value: BigNumber.from(0),
-        gasPrice: await provider.getGasPrice(),
-        gasLimit: BigNumber.from(1500000) 
-    }
-}
-
-//0x901Beb8aef8869b9a1e7f7c2919b38Ee16B1fB35
-
-export async function _swapETHForTokenAA(
-    tokenOut:string | undefined, 
-    quantity: BigInt, 
-    to:string | undefined
-    ):Promise<any> {
-
-    const path = [address.weth, tokenOut as string]    
-    const popTx = await swapModule.populateTransaction.swapETHForToken(
-        BigNumber.from(quantity),
-        path
-    )
-
-    let tx: types.TransactionRequest = await getEIP712TxRequest(to as string, popTx)
-
-    const signature = ethers.utils.arrayify(ethers.utils.joinSignature(await signer.eip712.sign(tx)))
-
-    tx.customData = {
-        ...tx.customData,
-        customSignature: signature,
-    };
-
-   return await web3provider.sendTransaction(utils.serialize(tx))
-}
-
-export async function _swapTokenForETHAA(
-    tokenIn:string | undefined, 
-    quantity: BigInt, 
-    to:string | undefined
-    ):Promise<any> {
-
-    const path = [tokenIn as string, address.weth]   
-    const popTx = await swapModule.populateTransaction.swapTokenForETH(
-        BigNumber.from(quantity),
-        path
-    )
-
-    let tx: types.TransactionRequest = await getEIP712TxRequest(to as string, popTx)
-
-    const signature = ethers.utils.arrayify(ethers.utils.joinSignature(await signer.eip712.sign(tx)))
-
-    tx.customData = {
-        ...tx.customData,
-        customSignature: signature,
-    };
-
-   return await web3provider.sendTransaction(utils.serialize(tx))
-}
-
-export async function _swapTokenForTokenAA(
-    tokenIn:string | undefined, 
-    tokenOut:string | undefined, 
-    quantity: BigInt, 
-    to:string | undefined
-    ):Promise<any> {
-
-    const path = [tokenIn as string, address.weth, tokenOut as string]  
-    const popTx = await swapModule.populateTransaction.swapTokenForToken(
-        BigNumber.from(quantity),
-        path
-    )
-
-    let tx: types.TransactionRequest = await getEIP712TxRequest(to as string, popTx)
-
-    const signature = ethers.utils.arrayify(ethers.utils.joinSignature(await signer.eip712.sign(tx)))
-
-    tx.customData = {
-        ...tx.customData,
-        customSignature: signature,
-    };
-
-   return await web3provider.sendTransaction(utils.serialize(tx))
 }

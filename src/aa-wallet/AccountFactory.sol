@@ -5,9 +5,11 @@ import "zksync-contracts/libraries/SystemContractsCaller.sol";
 
 contract AccountFactory {
     bytes32 public accountBytecodeHash;
+    address public moduleManager;
 
-    constructor(bytes32 _accountBytecodeHash) {
+    constructor(bytes32 _accountBytecodeHash, address _moduleManager) {
         accountBytecodeHash = _accountBytecodeHash;
+        moduleManager = _moduleManager;
     }
 
     function deployAccount(bytes32 salt, address owner)
@@ -24,7 +26,7 @@ contract AccountFactory {
                     (
                         salt,
                         accountBytecodeHash,
-                        abi.encode(owner),
+                        abi.encode(owner, moduleManager),
                         IContractDeployer.AccountAbstractionVersion.Version1
                     )
                 )

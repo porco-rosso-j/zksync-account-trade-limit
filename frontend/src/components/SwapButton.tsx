@@ -8,7 +8,7 @@ type Props = {
   tokenIn: Token | null;
   areTokensSelected: boolean;
   isNonZeroQuantity: boolean;
-  isSwapSponsored: boolean;
+  isErc20GasPayable: boolean;
   userHasSufficientBalance: boolean;
   userHasSufficcientAllowance: boolean;
   startSwap: any;
@@ -21,7 +21,7 @@ export default function SwapButton({
   tokenIn,
   areTokensSelected,
   isNonZeroQuantity,
-  isSwapSponsored,
+  isErc20GasPayable,
   userHasSufficientBalance,
   userHasSufficcientAllowance,
   startSwap,
@@ -47,7 +47,7 @@ export default function SwapButton({
     // areTokensSelected && areQuantitiesHighEnough && hasSufficientApproval ? (
     areTokensSelected && userHasSufficientBalance && isNonZeroQuantity ? (
       userHasSufficcientAllowance || isCA ? ( 
-        isSwapSponsored && !isCA ? (
+        isErc20GasPayable && !isCA ? (
           <Box mt="0.5rem">
           <Button
             onClick={() => {

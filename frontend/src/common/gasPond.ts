@@ -1,9 +1,9 @@
 import { Contract, ethers } from 'ethers';
-import {default as gasPondArtifact} from "artifacts/src/paymaster/NongaswapGPV2.sol/NongaswapGPV2.json" //yarn upgrade artifacts --latest
+import {default as gasPondArtifact} from "artifacts/src/aa-wallet/paymaster/GasPond.sol/GasPond.json" //yarn upgrade artifacts --latest
 import {address} from "./address"
 import { Falsy, useCall } from '@usedapp/core'
 
-export function _isAssetSponsored(
+export function _isGasPayableERC20(
     _token: string | Falsy,
     _sponsor: string | Falsy,
     _address: string | Falsy
@@ -12,7 +12,7 @@ export function _isAssetSponsored(
     const {value, error} = 
         useCall(_token && _sponsor && {
             contract: new Contract(address.gaspond, gasPondArtifact.abi),
-            method: 'isSponsoredAsset',
+            method: 'isGasPayableERC20',
             args: [_token, _sponsor]
         }) ?? {}
    if(error) {
@@ -25,7 +25,7 @@ export function _isAssetSponsored(
 }
 
 
-export function _isSponsoredPath(
+export function _isGasPayablePath(
     _tokenIn: string | Falsy,
     _tokenOut: string | Falsy,
     _sponsor: string | Falsy,
@@ -41,7 +41,7 @@ export function _isSponsoredPath(
     const {value, error} = 
         useCall(path && _sponsor && {
             contract: new Contract(address.gaspond, gasPondArtifact.abi),
-            method: 'isSponsoredPath',
+            method: 'isGasPayablePath',
             args: [path, _sponsor]
         }) ?? {}
    if(error) {
