@@ -17,14 +17,28 @@ export async function deployModules (
     const oracle = <Contract>(await deployer.deploy(oracleArtifact, []));
     console.log(`oracle: "${oracle.address}",`)
 
+    // Deploy AccountRegistry
+    const registryArtifact = await deployer.loadArtifact("AccountRegistry");
+    const registry = <Contract>(await deployer.deploy(registryArtifact, []));
+    console.log(`registry: "${registry.address}",`)
+
     // Deploy ModuleManager
     const moduleManagerArtifact = await deployer.loadArtifact("ModuleManager");
-    const moduleManager = <Contract>(await deployer.deploy(moduleManagerArtifact, [wallet.address]));
+    const moduleManager = <Contract>(await deployer.deploy(moduleManagerArtifact, [wallet.address, registry.address]));
     console.log(`moduleManager: "${moduleManager.address}",`)
 
     // Deploy SwapModuleBase
     const swapmoduleBaseArtifact = await deployer.loadArtifact("SwapModuleBase");
-    const swapModuleBase = <Contract>(await deployer.deploy(swapmoduleBaseArtifact, [wallet.address, moduleManager.address, wethContract.address, oracle.address, toBN("10000")]));
+    const swapModuleBase = <Contract>(await deployer.deploy(
+        swapmoduleBaseArtifact, 
+        [
+        wallet.address, 
+        moduleManager.address, 
+        wethContract.address, 
+        oracle.address, 
+        toBN("20000")
+        ]
+    ));
     console.log(`swapModuleBase: "${swapModuleBase.address}",`)
     // console.log("maxTradeAmountUSD: ", (await swapModuleBase.maxTradeAmountUSD()).toString())
 
@@ -35,6 +49,7 @@ export async function deployModules (
 
     // Oracle: set Price: eth 1500$
     await (await oracle.setPrices(wethContract.address, toBN("1500"))).wait();
+    await (await oracle.setPrices(daiContract.address, toBN("1"))).wait();
 
     // ModuleManager: add Module: 
     await (await moduleManager.addModule(swapModule.address, swapModuleBase.address, GASLIMIT)).wait();
@@ -43,9 +58,9 @@ export async function deployModules (
     const assets = [wethContract.address, daiContract.address, lusdContract.address]
     await ( await swapModuleBase.enableAsset(assets, GASLIMIT)).wait();
     await ( await swapModuleBase.addRouter(routerContract.address, GASLIMIT)).wait();
-    // await ( await swapModuleBase.setModuleId(0, GASLIMIT)).wait();
+    await ( await swapModuleBase.enabledDailyTradeLimit(toBN("10000"), GASLIMIT)).wait();
     // console.log("validAsset weth: ", await swapModuleBase.validAsset(wethContract.address))
     // console.log("validAsset dai: ", await swapModuleBase.validAsset(daiContract.address))
 
-    return [swapModule, moduleManager]
+    return [swapModule, moduleManager, registry]
 }

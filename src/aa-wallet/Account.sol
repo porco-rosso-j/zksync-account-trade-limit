@@ -7,12 +7,13 @@ import "zksync-contracts/Constants.sol";
 import "zksync-contracts/openzeppelin/utils/Address.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import "@openzeppelin/contracts/interfaces/IERC1271.sol";
-import "./libraries/Multisend.sol";
+import "@openzeppelin/contracts/utils/introspection/IERC165.sol";
+import "./libraries/Multicall.sol";
 import "./libraries/SignatureHelper.sol";
 import "./interfaces/IModule.sol";
 import "./interfaces/IModuleManager.sol";
 
-contract Account is IAccount, IERC1271, Multisend {
+contract Account is IAccount, IERC1271, IERC165, Multicall {
     using TransactionHelper for Transaction;
     using SignatureHelper for bytes;
 
@@ -156,19 +157,14 @@ contract Account is IAccount, IERC1271, Multisend {
         uint256 value = _transaction.value;
         bytes memory data = _transaction.data;
 
-        // if call is to module, it must be a delegatecall
-        if (isModule[to]) {
+        if (isBatched(_transaction.data, to)) {
+            multicall(_transaction.data[4:]);
+        } else if (isModule[to]) {
             Address.functionDelegateCall(to, data);
         } else {
             Address.functionCallWithValue(to, data, value);
         }
     }
-
-    //  delegatecall: proxy -> account
-    //　delegatecall: account -> swapmodule
-    //  call: swapmodule -> uniswap
-    //https://github.com/safe-global/safe-contracts/blob/96a4e280876c33c53a09b5ef6ee78201a101ff58/contracts/libraries/MultiSend.sol
-    //https://github.com/Instadapp/dsa-contracts/blob/42be5280b23b986a3beb55aeab2df9466fd84134/contracts/v2/accounts/test/ImplementationBetaTest.sol
 
     function executeTransactionFromOutside(Transaction calldata _transaction)
         external
@@ -197,6 +193,14 @@ contract Account is IAccount, IERC1271, Multisend {
         Transaction calldata _transaction
     ) external payable override onlyBootloader {
         _transaction.processPaymasterInput();
+    }
+
+    function supportsInterface(bytes4 interfaceId)
+        external
+        pure
+        returns (bool)
+    {
+        return interfaceId == type(IAccount).interfaceId;
     }
 
     fallback() external {

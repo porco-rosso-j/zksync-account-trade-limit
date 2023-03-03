@@ -136,7 +136,8 @@ export default function AccountModal({ isOpen, onClose, setCAddress, CAAddress, 
                 color={colorMode === "dark" ? "rgb(180,180,180)" : "gray"}
                 fontWeight="normal"
                 fontSize="0.825rem"
-                onClick={() => {navigator.clipboard.writeText(account || "")}}
+                onClick={() => {navigator.clipboard.writeText(
+                  (isCA ? CAAddress : account) || "")}}
                 _hover={{
                   textDecoration: "none",
                   color: "rgb(110, 114, 125)",

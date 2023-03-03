@@ -8,6 +8,7 @@ contract ModuleManager is IModuleManager {
     // mock usd prices
 
     address public admin;
+    address public accountRegistry;
 
     struct Module {
         uint256 id;
@@ -18,8 +19,9 @@ contract ModuleManager is IModuleManager {
     mapping(uint256 => Module) public modules;
     uint256 moduleIndex;
 
-    constructor(address _admin) {
+    constructor(address _admin, address _accountRegistry) {
         admin = _admin;
+        accountRegistry = _accountRegistry;
     }
 
     function addModule(address _module, address _moduleBase)

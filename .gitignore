@@ -21,9 +21,6 @@
 /out
 
 /local-setup
-
-/src/aa-wallet/modules/swapModule/SwapLimit.sol
-/src/tests/LibTest.sol
 /typechain-types
 
 .env

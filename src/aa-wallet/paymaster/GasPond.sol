@@ -20,10 +20,11 @@ for an AA-Wallet's transactions via its enabled modules.
 
 Sponsor: Sponsors are those who deposit funds to sponsor users' gas payment. 
 Anyone can register as sponsor and set preferable gas-sponsoring configurations.
+
 E.g: 
-- dismiss General Flow but accept ApprovaleBased Flow
-- Only support specific modules
-- Only support a certain ERC20 asset as payment method
+- in default, dismiss General Flow but accept ApprovaleBased Flow
+- Only support enabled modules, e.g. swapModule
+- Only support enabled certain ERC20 assets as payment method
 
 */
 
@@ -113,7 +114,6 @@ contract GasPond is
         require(_transaction.paymasterInput.length >= 4, "INVALID_BYTE_LENGTH");
 
         address to = address(uint160(_transaction.to));
-        require(modules[to].isValid, "INVALID_MODULE");
 
         uint256 eth_fee = _transaction.gasLimit * _transaction.maxFeePerGas;
         address sponsorAddr;
@@ -140,7 +140,13 @@ contract GasPond is
             sponsorAddr = _getGeneralParams(_transaction.paymasterInput[4:]);
         }
 
-        require(sponsors[sponsorAddr].enabledModules[to], "UNSUPPORTED_MODULE");
+        if (modules[to].isValid) {
+            require(
+                sponsors[sponsorAddr].enabledModules[to],
+                "UNSUPPORTED_MODULE"
+            );
+        }
+
         _isValidSponsor(sponsorAddr);
 
         require(
@@ -173,8 +179,16 @@ contract GasPond is
         require(erc20payment.isEnabled, "NOT_ENABLED");
         require(erc20payment.minFee <= _allowance, "INVALID_ALLOWANCE");
 
+        address from = address(uint160(_transaction.from));
         address to = address(uint160(_transaction.to));
-        _validatePaymentToken(_token, _sponsorAddr, to, _transaction.data);
+
+        _validatePaymentToken(
+            _token,
+            _sponsorAddr,
+            from,
+            to,
+            _transaction.data
+        );
 
         uint256 token_fee = _getTokenFee(_token, _eth_fee);
 
@@ -186,7 +200,7 @@ contract GasPond is
                 DECIMAL_PRECISION;
         }
 
-        _payInERC20(_token, address(uint160(_transaction.from)), token_fee);
+        _payInERC20(_token, from, token_fee);
 
         sponsors[_sponsorAddr].erc20Balances[_token] += token_fee;
     }
@@ -194,17 +208,43 @@ contract GasPond is
     function _validatePaymentToken(
         address _token,
         address _sponsorAddr,
+        address _from,
         address _to,
-        bytes memory _data
+        bytes calldata _data
     ) internal view {
         require(isGasPayableERC20(_token, _sponsorAddr), "NOT_SUPPORTED");
-        address base = modules[_to].moduleBaseAddr;
-        // if account swap via swapModule
-        // TokenIn must be the gas-payment token
-        if (IModule(base).moduleId() == modules[_to].moduleId) {
-            (, address[] memory path) = SwapModuleDecoder.decodeSwapArgs(_data);
-            if (path[0] != _token) revert("INVALID_TOKEN");
+
+        bool isSwapModule = _isSwapModule(_to);
+
+        if (isSwapModule) {
+            _isValidTokenIn(_token, _data);
+        } else if (bytes4(_data[0:4]) == bytes4(0x29451959) && _from == _to) {
+            // 0x29451959 = BATCH_TX_SELECTOR
+            // validation in case of batch transaction
+            (, address[] memory targets, bytes[] memory methods, ) = abi.decode(
+                _data[4:],
+                (bool[], address[], bytes[], uint256[])
+            );
+
+            for (uint256 i; i < targets.length; i++) {
+                isSwapModule = _isSwapModule(_to);
+                if (isSwapModule) _isValidTokenIn(_token, methods[i]);
+            }
         }
+    }
+
+    function _isValidTokenIn(address _token, bytes memory _data) internal pure {
+        (, address[] memory path) = SwapModuleDecoder.decodeSwapArgs(_data);
+        if (path[0] != _token) revert("INVALID_TOKENIN");
+    }
+
+    function _isSwapModule(address _to) internal view returns (bool) {
+        address base = modules[_to].moduleBaseAddr;
+
+        return
+            modules[_to].isValid &&
+            IModule(base).moduleIdentifier() ==
+            bytes4(keccak256("SWAP_MODULE"));
     }
 
     function postTransaction(

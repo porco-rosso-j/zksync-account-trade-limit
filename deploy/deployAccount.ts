@@ -8,7 +8,8 @@ export async function deployAccount (
     wallet: Wallet,
     deployer: Deployer,
     daiContract:Contract,
-    moduleManager:Contract
+    moduleManager:Contract,
+    registry: Contract
     ) {
 
     // Deploy AccountFactory
@@ -18,7 +19,7 @@ export async function deployAccount (
 
     const factory = <Contract>(await deployer.deploy(
         factoryArtifact, 
-        [bytecodeHash, moduleManager.address], 
+        [bytecodeHash, moduleManager.address, registry.address], 
         undefined, 
         [accountArtifact.bytecode,])
         );
@@ -32,9 +33,9 @@ export async function deployAccount (
     
     const accountContract = new ethers.Contract(accountAddr, accountArtifact.abi, wallet)
     console.log(`account: "${accountContract.address}",`)
-    await(await accountContract.addModules([1])).wait();
+    await(await accountContract.addModules([1], GASLIMIT)).wait();
 
-    // send 10k DAI to account
-    await (await daiContract.transfer(accountContract.address, toBN("10000"))).wait();
+    // mint 100k DAI to account
+    await (await daiContract.mint(accountContract.address, toBN("100000"))).wait();
 }
 

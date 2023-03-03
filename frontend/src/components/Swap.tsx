@@ -8,6 +8,7 @@ import {
   Text,
   useColorMode,
   HStack,
+  VStack,
   useMediaQuery,
 } from "@chakra-ui/react";
 import { SettingsIcon, ArrowDownIcon } from "@chakra-ui/icons";
@@ -34,10 +35,7 @@ import {
   _quoteSwap, 
   _swapETHForToken, 
   _swapTokenForETH, 
-  _swapTokenForToken,
-  _swapETHForTokenSponsored, 
-  _swapTokenForETHSponsored,
-  _swapTokenForTokenSponsored
+  _swapTokenForToken
 } from "../common/swapRouter"
 
 import {
@@ -46,6 +44,12 @@ import {
   _swapTokenForTokenAA
 } from "../common/swapModule"
 
+import { 
+  _checkTradeLimit,
+  _dailyTradeLimit,
+  _isDailyTradeLimitEnabled,
+  _maxTradeAmountUSD
+ } from "../common/swapModuleBase"
 import { _isGasPayablePath } from "../common/gasPond"
 import { address } from "../common/address"
 import { ZkSyncLocal } from "../common/zkSyncLocal";
@@ -148,9 +152,25 @@ export default function Trade({CAAddress, isCA} : Props) {
      ? tokenOut?.getAddressFromEncodedTokenName() : address.weth,  
     address.sponsor1, 
     isCA ? CAAddress : account as string 
-    ) //: false;
+    )
   
   const isErc20GasPayable = erc20GasPayable ? erc20GasPayable : false;
+
+  const tradeLimitResult = _checkTradeLimit(
+    isCA ? CAAddress : account as string,
+    isNativeTokenIn === false
+      ? tokenIn?.getAddressFromEncodedTokenName() : address.weth, 
+      BigNumber.from(tokenInQuantity),
+     )
+  
+   
+  const hasSufficientLimit = tradeLimitResult ? tradeLimitResult[0] : false;
+  const availabileAmount = tradeLimitResult ? tradeLimitResult[1] : 0;
+
+  const isDailyTradeLimitEnabled = _isDailyTradeLimitEnabled()
+  const dailyTradeLimit = _dailyTradeLimit()
+  const maxTradeAmountUSD = _maxTradeAmountUSD()
+
   const activatedIsTokenModal = useRef(true); 
 
   // ERC20 & Approval 
@@ -489,6 +509,7 @@ export default function Trade({CAAddress, isCA} : Props) {
             />
           </Box>
         </Flex>
+       
         {tokenIn && tokenOut && (
           <Box color={colorMode === "dark" ? "white" : "black"}>
             1 {tokenIn.symbol} = {quotedExchangeRate.toFixed(4)}{" "}
@@ -507,6 +528,31 @@ export default function Trade({CAAddress, isCA} : Props) {
           disabled={disabled}
           isCA={isCA}
         />
+         { isCA && tokenIn && tokenOut && (
+           <VStack
+             align="left"
+             spacing={0.1}
+             fontSize={14} 
+             py={2} 
+             pl={2}
+             //bgColor={}
+             borderColor="black"
+             borderRadius="3"
+             >
+            <Box color={colorMode === "dark" ? "white" : "black"} fontSize={16}>
+              - Trade Limit Info - 
+              </Box>
+              <Box color={colorMode === "dark" ? "white" : "black"}>
+              Max Trade Size For A Trade: {maxTradeAmountUSD ? (maxTradeAmountUSD / 1e18).toFixed(0) : 0}$
+              </Box>
+            <Box color={colorMode === "dark" ? "white" : "black"}>
+              Daily TradeLimit: {dailyTradeLimit ? (dailyTradeLimit / 1e18).toFixed(0) : 0}$
+              </Box>
+            <Box color={colorMode === "dark" ? "white" : "black"}>
+              Available Amount: {availabileAmount ? (availabileAmount / 1e18).toFixed(0) : 0 }$
+               </Box>
+           </VStack>
+          )}
       </Box>
     </Box>
   );
