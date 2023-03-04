@@ -1,6 +1,5 @@
 pragma solidity ^0.8.0;
 
-// for ModuleBase
 interface IModule {
     function moduleIdentifier() external view returns (bytes4);
 

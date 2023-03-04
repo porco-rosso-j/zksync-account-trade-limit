@@ -7,12 +7,12 @@ import "../../interfaces/ISwapModuleBase.sol";
 import "../../interfaces/IModuleManager.sol";
 import "../../interfaces/IAccountRegistry.sol";
 
-/*
-
-SwapModuleBase is the base contract for SwapModuleUniV2.
-A separate base contract for a module should exist 
-since SwapModuleUniV2 is always delegatecalled from Account
-and its state variabels can't be read whatsoever,
+/**
+@title SwapModuleBase Contract that serves as the base and helper for SwapModuleUniV2
+@author Porco Rosso<porcorossoj89@gmail.com>
+@dev 
+Account always delegatecall SwapModuleUniV2. 
+Thus, this separate base contract should store needed variables with validation logics.
 
 */
 
@@ -27,10 +27,12 @@ contract SwapModuleBase is ISwapModuleBase {
     Oracle public oracle;
 
     uint256 public maxTradeAmountUSD;
-    uint256 public constant DAY = 864000;
+    uint256 public constant DAY = 86400;
     uint256 public dailyTradeLimit;
     bool public isDailyTradeLimitEnabled;
 
+    /// @param available the available amount to trade
+    /// @param resetTime block.timestamp at which available amount is restored
     struct TradeLimit {
         uint256 available;
         uint256 resetTime;
@@ -60,26 +62,32 @@ contract SwapModuleBase is ISwapModuleBase {
         _;
     }
 
-    // called by moduleManager
+    /**
+    @notice function that is called by moduleManager to set moduleId
+    @param _moduleId the identifier number of a module
+     */
     function setModuleId(uint256 _moduleId) external {
         require(msg.sender == moduleManager, "INVALID_CALLER");
         moduleId = _moduleId;
     }
 
-    /// operations
+    /// @notice function sets maxTradeAmountUSD
     function setMaxTradeAmountUSD(uint256 _amount) public onlyAdmin {
         maxTradeAmountUSD = _amount;
     }
 
+    /// @notice function enables router
     function addRouter(address _router) public onlyAdmin {
         routers[_router] = true;
     }
 
+    /// @notice function disables router
     function removeRouter(address _router) public onlyAdmin {
         require(isRouterEnabled(_router), "NOT_ENABLED");
         routers[_router] = false;
     }
 
+    /// @notice function enables assets for trading on swapModule
     function enableAsset(address[] memory _tokens) public onlyAdmin {
         for (uint256 i; i < _tokens.length; i++) {
             require(_tokens[i] != address(0), "INVALID_ADDRESS");
@@ -87,17 +95,20 @@ contract SwapModuleBase is ISwapModuleBase {
         }
     }
 
+    /// @notice function enables daily trading limit
     function enabledDailyTradeLimit(uint256 _dailyTradeLimit) public onlyAdmin {
         require(!isDailyTradeLimitEnabled, "ALREADY_ENABLED");
         isDailyTradeLimitEnabled = true;
         setDailyTradeLimit(_dailyTradeLimit);
     }
 
+    /// @notice function changes daily trading limit
     function setDailyTradeLimit(uint256 _dailyTradeLimit) public onlyAdmin {
         require(_dailyTradeLimit != 0, "INVALID_AMOUNT");
         dailyTradeLimit = _dailyTradeLimit;
     }
 
+    /// @notice function called by Account in addModules() to enable account
     function addAccount(address _account) public {
         address registry = IModuleManager(moduleManager).accountRegistry();
         require(
@@ -107,6 +118,7 @@ contract SwapModuleBase is ISwapModuleBase {
         accounts[_account] = true;
     }
 
+    /// @notice function called by Account in addModules() to disable account
     function removeAccount(address _account) public {
         require(
             IAccountRegistry(IModuleManager(moduleManager).accountRegistry())
@@ -117,14 +129,23 @@ contract SwapModuleBase is ISwapModuleBase {
         accounts[_account] = false;
     }
 
+    /// @notice view function to check if the account is enabled
     function isAccountEnabled(address _account) public view returns (bool) {
         return accounts[_account];
     }
 
+    /// @notice view function to check if the router is enabled
     function isRouterEnabled(address _router) internal view returns (bool) {
         return routers[_router];
     }
 
+    /**
+    @notice method to validate if the trade is valid
+    @param _account the account address that trades through this module
+    @param _router the router address that this module interacts with
+    @param _amount the amount of trade-size in USD
+    @param _path the swap path
+     */
     function _isValidTrade(
         address _account,
         address _router,
@@ -147,23 +168,39 @@ contract SwapModuleBase is ISwapModuleBase {
         return true;
     }
 
+    /**
+    @notice method to check if the amount exceeds the available amount and throws an error otherwise.
+    @notice this function is mostly based on my SpendLimit implementation of AA daily spend limit tutorial's code
+    @notice see: https://github.com/porco-rosso-j/daily-spendlimit-tutorial/blob/main/contracts/SpendLimit.sol
+    @param _account the account address that trades through this module
+    @param _amount the amount of trade-size in USD
+    @dev block.timestamp on zkSync is delayed 10-15mins compared to L1's timestamp but its negligible for this dapp.
+     */
     function _checkTradeLimit(address _account, uint256 _amount) internal {
         TradeLimit memory limit = limits[_account];
 
         uint256 timestamp = block.timestamp;
 
+        // Renew resetTime and available amount, which is only performed
+        // if a day has already passed since the last update : timestamp > resetTime
         if (dailyTradeLimit != limit.available && timestamp > limit.resetTime) {
             limit.resetTime = timestamp + DAY;
             limit.available = dailyTradeLimit;
+
+            // Or only resetTime is updated if it's the first trade after enabling limit
         } else if (dailyTradeLimit == limit.available) {
             limit.resetTime = timestamp + DAY;
         }
 
+        // reverts if the amount exceeds the remaining available amount.
         require(limit.available >= _amount, "EXCEED_DAILY_LIMIT");
+
+        // decrement `available`
         limit.available -= _amount;
         limits[_account] = limit;
     }
 
+    /// @notice returns the value of the trade calculated with the price fetched from oracle(mock)
     function getTradeSize(address _token, uint256 _amount)
         public
         view
@@ -174,6 +211,7 @@ contract SwapModuleBase is ISwapModuleBase {
         return (_amount * price) / 1e18;
     }
 
+    /// @dev view method to see Trade Limit for account. For integration or front-end uses.
     function checkTradeLimit(
         address _account,
         address _token,

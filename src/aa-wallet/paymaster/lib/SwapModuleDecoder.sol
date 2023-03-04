@@ -1,7 +1,19 @@
 //SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
+/**
+@title SwapModuleDecoder Library that decodes arguments for swap from calldata 
+@author Porco Rosso<porcorossoj89@gmail.com>
+@notice this contract serves as a helper for GasPond to obtain argument values of swap functions in swapModule
+*/
+
 library SwapModuleDecoder {
+    /**
+    @notice this function decodes and returns argument values of functions in swapModuleUniV2.sol
+    @param _calldata of swap functions such as swapETHForToken, swapTokenForETH and swapTokenForToken.
+    @return tokenInAmount the input amount for swap
+    @return path the swap path arrays that contains ERC20 tokenn addresses
+    */
     function decodeSwapArgs(bytes memory _calldata)
         internal
         pure
@@ -17,6 +29,11 @@ library SwapModuleDecoder {
         return (tokenInAmount, path);
     }
 
+    /**
+    @notice this inner function extract calldata in a way that remove the first 4bytes(selector) from calldata
+    @param _calldata of swap functions such as swapETHForToken, swapTokenForETH and swapTokenForToken.
+    @return data calldata without selector, the first 4bytes of calldata.
+    */
     function extractCalldata(bytes memory _calldata)
         internal
         pure
@@ -48,13 +65,5 @@ library SwapModuleDecoder {
         }
 
         return data;
-    }
-
-    function getSelector(bytes memory _data) internal pure returns (bytes4) {
-        bytes4 selector;
-        assembly {
-            selector := calldataload(_data)
-        }
-        return selector;
     }
 }

@@ -1,5 +1,12 @@
 pragma solidity ^0.8.0;
 
+/**
+
+These two functions are taken from the tutorial of AA-multisig wallet on zkSync developer doc.
+see: https://era.zksync.io/docs/dev/tutorials/custom-aa-tutorial.html#signature-validation
+
+*/
+
 library SignatureHelper {
     function extractECDSASignature(bytes memory _signature)
         internal

@@ -4,6 +4,13 @@ import "zksync-contracts/Constants.sol";
 import "zksync-contracts/libraries/SystemContractsCaller.sol";
 import "./interfaces/IAccountRegistry.sol";
 
+/**
+@title Factory Contract that deploys Account contract
+@author Porco Rosso<porcorossoj89@gmail.com>
+@notice This is a factory contract that deploys Account contract, which also passes deployed addresses to AccountRegistry contract.
+
+*/
+
 contract AccountFactory {
     bytes32 public accountBytecodeHash;
     address public moduleManager;
@@ -19,6 +26,12 @@ contract AccountFactory {
         accountRegistry = _accountRegistry;
     }
 
+    /**
+    @notice this function deploys an Account contract and passes deployed address to AccountRegistry.
+    @param salt arbitrary hash to pass create2Account metho
+    @param owner signer address of the deployed account
+    @return accountAddress deployed Account contract address
+     */
     function deployAccount(bytes32 salt, address owner)
         external
         returns (address accountAddress)

@@ -2,6 +2,14 @@
 pragma solidity ^0.8.0;
 import {IPaymasterFlow} from "zksync-contracts/interfaces/IPaymasterFlow.sol";
 
+/**
+@title GasPondHelper Contract that serves as a helper for Gaspond contract
+@author Porco Rosso<porcorossoj89@gmail.com>
+@notice This contract mainly does two things below: 
+1) checks and returns that whether the transaction's paymasterFlow is approvalBased is general in _isApprovalBased
+2) decodes paymasterParams and its input, and returns the values to GasPond for verification in either _getApprovalBasedParams or _getGeneralParams
+*/
+
 abstract contract GasPondHelper {
     function _isApprovalBased(bytes4 _paymasterInputSelector)
         internal
