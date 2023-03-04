@@ -48,7 +48,8 @@ import {
   _checkTradeLimit,
   _dailyTradeLimit,
   _isDailyTradeLimitEnabled,
-  _maxTradeAmountUSD
+  _maxTradeAmountUSD,
+  _getPrice
  } from "../common/swapModuleBase"
 import { _isGasPayablePath } from "../common/gasPond"
 import { address } from "../common/address"
@@ -162,14 +163,24 @@ export default function Trade({CAAddress, isCA} : Props) {
       ? tokenIn?.getAddressFromEncodedTokenName() : address.weth, 
       BigNumber.from(tokenInQuantity),
      )
-  
    
   const hasSufficientLimit = tradeLimitResult ? tradeLimitResult[0] : false;
-  const availabileAmount = tradeLimitResult ? tradeLimitResult[1] : 0;
+  const availabileAmount = tradeLimitResult ? tradeLimitResult[1] : undefined;
 
   const isDailyTradeLimitEnabled = _isDailyTradeLimitEnabled()
   const dailyTradeLimit = _dailyTradeLimit()
   const maxTradeAmountUSD = _maxTradeAmountUSD()
+
+  const tokenInPrice: number | undefined = _getPrice(
+    isNativeTokenIn === false
+    ? tokenIn?.getAddressFromEncodedTokenName() : address.weth
+    )
+
+  const estimatedAvailableAmount = 
+  availabileAmount && tokenInQuantity && tokenInPrice 
+  ? Number((availabileAmount / 1e18).toFixed(0))
+  - Number( ( Number(tokenInQuantity) / 10 ** tokenIn?.decimals * tokenInPrice).toFixed(0) )
+  : undefined;
 
   const activatedIsTokenModal = useRef(true); 
 
@@ -252,7 +263,6 @@ export default function Trade({CAAddress, isCA} : Props) {
     receipt = await tx.wait()
     console.log("swap transaction receipt =", receipt);
 
-    //console.log("balance: ", (await erc20Contract.connect(signer).balanceOf(CAAddress).toString()))
     setDisabled(false);
   }
 
@@ -528,7 +538,7 @@ export default function Trade({CAAddress, isCA} : Props) {
           disabled={disabled}
           isCA={isCA}
         />
-         { isCA && tokenIn && tokenOut && (
+         { isCA && tokenIn && (
            <VStack
              align="left"
              spacing={0.1}
@@ -539,17 +549,20 @@ export default function Trade({CAAddress, isCA} : Props) {
              borderColor="black"
              borderRadius="3"
              >
-            <Box color={colorMode === "dark" ? "white" : "black"} fontSize={16}>
-              - Trade Limit Info - 
+            <Box color={colorMode === "dark" ? "white" : "black"} fontSize={16} >
+              □ Trade Limit
               </Box>
               <Box color={colorMode === "dark" ? "white" : "black"}>
-              Max Trade Size For A Trade: {maxTradeAmountUSD ? (maxTradeAmountUSD / 1e18).toFixed(0) : 0}$
+              - Limit For A Trade: {maxTradeAmountUSD ? (maxTradeAmountUSD / 1e18).toFixed(0) : 0}$
               </Box>
             <Box color={colorMode === "dark" ? "white" : "black"}>
-              Daily TradeLimit: {dailyTradeLimit ? (dailyTradeLimit / 1e18).toFixed(0) : 0}$
+              - Daily Trade Limit: {dailyTradeLimit ? (dailyTradeLimit / 1e18).toFixed(0) : 0}$
               </Box>
             <Box color={colorMode === "dark" ? "white" : "black"}>
-              Available Amount: {availabileAmount ? (availabileAmount / 1e18).toFixed(0) : 0 }$
+              - Available Amount: {availabileAmount ? (availabileAmount / 1e18).toFixed(0) : 0 }$
+              {" "} { estimatedAvailableAmount ?  !hasSufficientLimit 
+              ? <Text color ="red">[EXCEEDS LIMIT] Swap would fail. Please lower the amount.</Text>  
+              : `to ${(estimatedAvailableAmount)}$` :  ""}
                </Box>
            </VStack>
           )}

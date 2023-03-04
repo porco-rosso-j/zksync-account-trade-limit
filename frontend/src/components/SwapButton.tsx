@@ -44,7 +44,6 @@ export default function SwapButton({
   }
 
   return account && isCorrectChainId ? (
-    // areTokensSelected && areQuantitiesHighEnough && hasSufficientApproval ? (
     areTokensSelected && userHasSufficientBalance && isNonZeroQuantity ? (
       userHasSufficcientAllowance || isCA ? ( 
         isErc20GasPayable && !isCA ? (

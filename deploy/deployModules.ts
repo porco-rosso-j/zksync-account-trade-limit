@@ -36,7 +36,7 @@ export async function deployModules (
         moduleManager.address, 
         wethContract.address, 
         oracle.address, 
-        toBN("20000")
+        toBN("5000")
         ]
     ));
     console.log(`swapModuleBase: "${swapModuleBase.address}",`)
@@ -50,6 +50,7 @@ export async function deployModules (
     // Oracle: set Price: eth 1500$
     await (await oracle.setPrices(wethContract.address, toBN("1500"))).wait();
     await (await oracle.setPrices(daiContract.address, toBN("1"))).wait();
+    await (await oracle.setPrices(lusdContract.address, toBN("1"))).wait();
 
     // ModuleManager: add Module: 
     await (await moduleManager.addModule(swapModule.address, swapModuleBase.address, GASLIMIT)).wait();
