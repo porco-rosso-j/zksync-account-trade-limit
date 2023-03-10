@@ -31,7 +31,13 @@ export function _isGasPayablePath(
     _sponsor: string | Falsy,
     _address: string | Falsy
 ): boolean | undefined {
-    
+
+    console.log("_tokenIn: ", _tokenIn)
+    console.log("_tokenOut: ", _tokenOut)
+    console.log("_sponsor: ", _sponsor)
+    console.log("_address: ", _address)
+
+
     const path = 
     !_tokenIn || !_tokenOut
     ? [ethers.constants.AddressZero, ethers.constants.AddressZero] :

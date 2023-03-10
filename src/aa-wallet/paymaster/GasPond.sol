@@ -27,7 +27,7 @@ import {SwapModuleDecoder} from "./lib/SwapModuleDecoder.sol";
 
 @dev Rationals for the one-paymster-contract-with-many-sponsors model.
 GasPond also reduces the costs for those who want to sponsor users' gas-payment to serve as paymasters.
-Instead of writing codes and deploy their own paymaster contracts, all they have to do is just to set sponsor-configs depending on their needs.
+Instead of writing codes and deploy their own paymaster contracts, all they have to do is just to call GasPond to set sponsor-configs depending on their needs.
 
 Additionally, this model can eliminate the risks that users have to trust a random number of unknown paymasters where some could have malicious codes.
 GasPond accepts anyone to be a sponsor but only allows them to execute specific functions which are limtied and open-source.

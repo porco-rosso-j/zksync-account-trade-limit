@@ -179,17 +179,11 @@ contract SwapModuleBase is ISwapModuleBase {
     function _checkTradeLimit(address _account, uint256 _amount) internal {
         TradeLimit memory limit = limits[_account];
 
-        uint256 timestamp = block.timestamp;
-
-        // Renew resetTime and available amount, which is only performed
-        // if a day has already passed since the last update : timestamp > resetTime
-        if (dailyTradeLimit != limit.available && timestamp > limit.resetTime) {
-            limit.resetTime = timestamp + DAY;
+        /// @dev Renew resetTime and available amount, which is only performed
+        /// if either its the first swap or a day has already passed since the last update : block.timestamp > resetTime
+        if (block.timestamp > limit.resetTime) {
+            limit.resetTime = block.timestamp + DAY;
             limit.available = dailyTradeLimit;
-
-            // Or only resetTime is updated if it's the first trade after enabling limit
-        } else if (dailyTradeLimit == limit.available) {
-            limit.resetTime = timestamp + DAY;
         }
 
         // reverts if the amount exceeds the remaining available amount.
@@ -216,11 +210,21 @@ contract SwapModuleBase is ISwapModuleBase {
         address _account,
         address _token,
         uint256 _amount
-    ) public view returns (bool, uint256) {
+    )
+        public
+        view
+        returns (
+            bool,
+            uint256,
+            uint256
+        )
+    {
         uint256 tradeSize = getTradeSize(_token, _amount);
-        bool isAvailable = limits[_account].available >= tradeSize
-            ? true
-            : false;
-        return (isAvailable, limits[_account].available);
+        bool isAvailable = limits[_account].available >= tradeSize;
+        return (
+            isAvailable,
+            limits[_account].available,
+            limits[_account].resetTime
+        );
     }
 }

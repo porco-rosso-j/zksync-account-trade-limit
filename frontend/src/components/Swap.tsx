@@ -24,7 +24,7 @@ import {
 } from "@usedapp/core";
 
 import { BigNumber, constants, Contract } from 'ethers';
-import { Web3Provider } from 'zksync-web3';
+import { Web3Provider, Provider} from 'zksync-web3';
 
 import SwapButton from "./SwapButton";
 import TokenSelect from "./TokenSelect";
@@ -73,7 +73,7 @@ export default function Trade({CAAddress, isCA} : Props) {
   const [quotedExchangeRate, setQuotedExchangeRate] = useState<number>(0);
   const [disabled, setDisabled] = useState<boolean>(false);
 
-  // const provider = new Provider(ZkSyncLocal.rpcUrl);
+  const provider = new Provider(ZkSyncLocal.rpcUrl);
   const signer = (new Web3Provider(window.ethereum)).getSigner();
   const txnOpts: TransactionOptions | undefined = signer
     ? { signer: signer }
@@ -163,24 +163,39 @@ export default function Trade({CAAddress, isCA} : Props) {
       ? tokenIn?.getAddressFromEncodedTokenName() : address.weth, 
       BigNumber.from(tokenInQuantity),
      )
-   
-  const hasSufficientLimit = tradeLimitResult ? tradeLimitResult[0] : false;
-  const availabileAmount = tradeLimitResult ? tradeLimitResult[1] : undefined;
 
-  const isDailyTradeLimitEnabled = _isDailyTradeLimitEnabled()
   const dailyTradeLimit = _dailyTradeLimit()
   const maxTradeAmountUSD = _maxTradeAmountUSD()
+
+  
+  const resetTime = tradeLimitResult ? tradeLimitResult[2] : undefined;
+  const hasSufficientLimit = 
+   tradeLimitResult && tradeLimitResult[0] != undefined && (
+    resetTime == 0 ? true : tradeLimitResult[0]
+   )
+
+  const availabileAmount =
+   tradeLimitResult && tradeLimitResult[1] && ( 
+    resetTime == 0 ? dailyTradeLimit : tradeLimitResult[1]
+   )
 
   const tokenInPrice: number | undefined = _getPrice(
     isNativeTokenIn === false
     ? tokenIn?.getAddressFromEncodedTokenName() : address.weth
     )
 
+  const tokenInValue: number | undefined = 
+    tokenInQuantity && tokenInPrice
+    ? (Number(tokenInQuantity) / 1e18 * tokenInPrice)
+    : undefined;
+
   const estimatedAvailableAmount = 
-  availabileAmount && tokenInQuantity && tokenInPrice 
-  ? Number((availabileAmount / 1e18).toFixed(0))
-  - Number( ( Number(tokenInQuantity) / 10 ** tokenIn?.decimals * tokenInPrice).toFixed(0) )
+  availabileAmount && tokenInValue 
+  ? (availabileAmount / 1e18) - tokenInValue
   : undefined;
+
+  const hasExceedMaxTradeSize: boolean | undefined = 
+  tokenInValue && maxTradeAmountUSD ? (tokenInValue >= (maxTradeAmountUSD/1e18)) ? true : false : undefined;
 
   const activatedIsTokenModal = useRef(true); 
 
@@ -550,19 +565,27 @@ export default function Trade({CAAddress, isCA} : Props) {
              borderRadius="3"
              >
             <Box color={colorMode === "dark" ? "white" : "black"} fontSize={16} >
-              □ Trade Limit
+              -- Trade Limit --
               </Box>
               <Box color={colorMode === "dark" ? "white" : "black"}>
-              - Limit For A Trade: {maxTradeAmountUSD ? (maxTradeAmountUSD / 1e18).toFixed(0) : 0}$
+              - Max Size Per Trade: {maxTradeAmountUSD ? (maxTradeAmountUSD / 1e18).toFixed(0) : 0}$
+               { hasExceedMaxTradeSize ? <Text color ="red" fontSize={13}>[EXCEEDS MAX SIZE] Swap would fail. Please lower the amount.</Text> : null}
               </Box>
             <Box color={colorMode === "dark" ? "white" : "black"}>
               - Daily Trade Limit: {dailyTradeLimit ? (dailyTradeLimit / 1e18).toFixed(0) : 0}$
               </Box>
             <Box color={colorMode === "dark" ? "white" : "black"}>
-              - Available Amount: {availabileAmount ? (availabileAmount / 1e18).toFixed(0) : 0 }$
-              {" "} { estimatedAvailableAmount ?  !hasSufficientLimit 
-              ? <Text color ="red">[EXCEEDS LIMIT] Swap would fail. Please lower the amount.</Text>  
-              : `to ${(estimatedAvailableAmount)}$` :  ""}
+            {console.log("dailyTradeLimit: ", dailyTradeLimit)}
+              {console.log("availabileAmount: ", availabileAmount)}
+              {console.log("estimatedAvailableAmount: ", estimatedAvailableAmount)}
+              {console.log("hasSufficientLimit: ", hasSufficientLimit)}
+              {console.log("hasExceedMaxTradeSize: ", hasExceedMaxTradeSize)}
+              {console.log("tokenInValue: ", tokenInValue)}
+              
+              - Available Amount: {availabileAmount ? (Number(availabileAmount) / 1e18).toFixed(0): null }$
+              {" "} { estimatedAvailableAmount &&  hasSufficientLimit 
+              ? `to ${(estimatedAvailableAmount.toFixed(0))}$`   
+              : <Text color ="red" fontSize={13}>[EXCEEDS DAILY LIMIT] Swap would fail. Please lower the amount.</Text> }
                </Box>
            </VStack>
           )}

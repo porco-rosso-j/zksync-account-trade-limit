@@ -17,41 +17,41 @@ export default async function deployAll (hre: HardhatRuntimeEnvironment) {
     const wallet = new Wallet(rich_wallet[0].privateKey, provider);
     const deployer = new Deployer(hre, wallet);
     
-   const[
-    wethContract, 
-    routerContract, 
-    daiContract, 
-    lusdContract
-   ] = await deployUniswap(wallet, deployer)
+//    const[
+//     wethContract, 
+//     routerContract, 
+//     daiContract, 
+//     lusdContract
+//    ] = await deployUniswap(wallet, deployer)
 
-   //await deployMulticall(deployer)
+   await deployMulticall(deployer)
 
-   const[swapModule, moduleManager, registry] 
-   = await deployModules(
-    wallet, 
-    deployer,
-    routerContract,
-    wethContract,
-    daiContract,
-    lusdContract
-    )
+//    const[swapModule, moduleManager, registry] 
+//    = await deployModules(
+//     wallet, 
+//     deployer,
+//     routerContract,
+//     wethContract,
+//     daiContract,
+//     lusdContract
+//     )
 
-    await deployAccount(
-        wallet, 
-        deployer, 
-        daiContract, 
-        moduleManager,
-        registry
-    )
+//     await deployAccount(
+//         wallet, 
+//         deployer, 
+//         daiContract, 
+//         moduleManager,
+//         registry
+//     )
 
-    await deployGasPond(
-        wallet, 
-        deployer, 
-        wethContract, 
-        routerContract, 
-        daiContract, 
-        swapModule,
-        moduleManager
-    )
+//     await deployGasPond(
+//         wallet, 
+//         deployer, 
+//         wethContract, 
+//         routerContract, 
+//         daiContract, 
+//         swapModule,
+//         moduleManager
+//     )
 
 }

@@ -8,7 +8,7 @@ export function _checkTradeLimit(
     _address: string | Falsy,
     _tokenIn: string | Falsy,
     _amount: BigNumber | Falsy
-): [boolean | undefined, number | undefined] | undefined {
+): [boolean | undefined, number | undefined, number | undefined] | undefined {
     
     const {value, error} = 
         useCall(_address && _tokenIn && _amount && {
@@ -22,9 +22,10 @@ export function _checkTradeLimit(
    }
 
    console.log("bool:", value?.[0])
-   console.log("available:", value?.[1].toString())
+   console.log("available raw:", value?.[1].toString())
+   console.log("resetTime:", value?.[2])
 
-    return [value?.[0], value?.[1]]
+    return [value?.[0], value?.[1], value?.[2]]
 }
 
 export function _dailyTradeLimit(): number | undefined {
