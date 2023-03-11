@@ -26,16 +26,19 @@ contract SwapModuleBase is ISwapModuleBase {
     address public wethAddr;
     Oracle public oracle;
 
-    uint256 public maxTradeAmountUSD;
+    uint256 public maxSizePerTrade;
     uint256 public constant DAY = 86400;
-    uint256 public dailyTradeLimit;
+    uint256 public maxCustomLimit;
+    uint256 public defaultLimit;
     bool public isDailyTradeLimitEnabled;
 
     /// @param available the available amount to trade
     /// @param resetTime block.timestamp at which available amount is restored
     struct TradeLimit {
+        uint256 customLimit;
         uint256 available;
         uint256 resetTime;
+        bool isCustomLimitEnabled;
     }
 
     mapping(address => TradeLimit) public limits; // account => TradeLimit
@@ -48,13 +51,15 @@ contract SwapModuleBase is ISwapModuleBase {
         address _moduleManager,
         address _wethAddr,
         address _oracle,
-        uint256 _maxTradeAmountUSD
+        uint256 _maxSizePerTrade,
+        uint256 _maxCustomLimit
     ) {
         admin = _admin;
         moduleManager = _moduleManager;
         wethAddr = _wethAddr;
         oracle = Oracle(_oracle);
-        maxTradeAmountUSD = _maxTradeAmountUSD;
+        maxSizePerTrade = _maxSizePerTrade;
+        maxCustomLimit = _maxCustomLimit;
     }
 
     modifier onlyAdmin() {
@@ -71,9 +76,14 @@ contract SwapModuleBase is ISwapModuleBase {
         moduleId = _moduleId;
     }
 
-    /// @notice function sets maxTradeAmountUSD
-    function setMaxTradeAmountUSD(uint256 _amount) public onlyAdmin {
-        maxTradeAmountUSD = _amount;
+    /// @notice function sets maxSizePerTrade
+    function setMaxSizePerTrade(uint256 _amount) public onlyAdmin {
+        maxSizePerTrade = _amount;
+    }
+
+    /// @notice function sets maxCustomLimit
+    function setMaxCustomLimit(uint256 _amount) public onlyAdmin {
+        maxCustomLimit = _amount;
     }
 
     /// @notice function enables router
@@ -96,16 +106,16 @@ contract SwapModuleBase is ISwapModuleBase {
     }
 
     /// @notice function enables daily trading limit
-    function enabledDailyTradeLimit(uint256 _dailyTradeLimit) public onlyAdmin {
+    function enabledDailyTradeLimit(uint256 _defaultLimit) public onlyAdmin {
         require(!isDailyTradeLimitEnabled, "ALREADY_ENABLED");
         isDailyTradeLimitEnabled = true;
-        setDailyTradeLimit(_dailyTradeLimit);
+        setDailyTradeLimit(_defaultLimit);
     }
 
     /// @notice function changes daily trading limit
-    function setDailyTradeLimit(uint256 _dailyTradeLimit) public onlyAdmin {
-        require(_dailyTradeLimit != 0, "INVALID_AMOUNT");
-        dailyTradeLimit = _dailyTradeLimit;
+    function setDailyTradeLimit(uint256 _defaultLimit) public onlyAdmin {
+        require(_defaultLimit != 0, "INVALID_AMOUNT");
+        defaultLimit = _defaultLimit;
     }
 
     /// @notice function called by Account in addModules() to enable account
@@ -159,7 +169,7 @@ contract SwapModuleBase is ISwapModuleBase {
         }
 
         uint256 tradeSizeUSD = getTradeSize(_path[0], _amount);
-        require(tradeSizeUSD <= maxTradeAmountUSD, "AMOUNT_EXCEEDS_MAX_AMOUNT");
+        require(tradeSizeUSD <= maxSizePerTrade, "AMOUNT_EXCEEDS_MAX_AMOUNT");
 
         if (isDailyTradeLimitEnabled) {
             _checkTradeLimit(_account, tradeSizeUSD);
@@ -179,11 +189,17 @@ contract SwapModuleBase is ISwapModuleBase {
     function _checkTradeLimit(address _account, uint256 _amount) internal {
         TradeLimit memory limit = limits[_account];
 
+        uint256 timestamp = block.timestamp;
+        bool hasDayPassed = timestamp >= limit.resetTime;
+
         /// @dev Renew resetTime and available amount, which is only performed
         /// if either its the first swap or a day has already passed since the last update : block.timestamp > resetTime
-        if (block.timestamp > limit.resetTime) {
-            limit.resetTime = block.timestamp + DAY;
-            limit.available = dailyTradeLimit;
+        if (hasDayPassed && limit.isCustomLimitEnabled) {
+            limit.resetTime = timestamp + DAY;
+            limit.available = limit.customLimit;
+        } else if (hasDayPassed) {
+            limit.resetTime = timestamp + DAY;
+            limit.available = defaultLimit;
         }
 
         // reverts if the amount exceeds the remaining available amount.
@@ -192,6 +208,19 @@ contract SwapModuleBase is ISwapModuleBase {
         // decrement `available`
         limit.available -= _amount;
         limits[_account] = limit;
+    }
+
+    function setCustomDailyTradeLimit(uint256 _amount) public {
+        require(_amount != 0 && _amount <= maxCustomLimit, "INVALID_AMOUNT");
+        require(isAccountEnabled(msg.sender), "NOT_ENABLED");
+
+        TradeLimit memory limit = limits[msg.sender];
+        require(block.timestamp > limit.resetTime, "INVALID_UPDATE");
+
+        limit.isCustomLimitEnabled = true;
+        limit.customLimit = _amount;
+
+        limits[msg.sender] = limit;
     }
 
     /// @notice returns the value of the trade calculated with the price fetched from oracle(mock)
