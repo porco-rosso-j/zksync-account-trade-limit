@@ -8,7 +8,6 @@ export function _isGasPayableERC20(
     _sponsor: string | Falsy,
     _address: string | Falsy
 ): boolean | undefined {
-    console.log("_sponsor: ", _sponsor)
     const {value, error} = 
         useCall(_token && _sponsor && {
             contract: new Contract(address.gaspond, gasPondArtifact.abi),
@@ -20,7 +19,6 @@ export function _isGasPayableERC20(
      return undefined
    }
 
-   console.log("value: ", value?.[0])
     return value?.[0]
 }
 
@@ -31,12 +29,6 @@ export function _isGasPayablePath(
     _sponsor: string | Falsy,
     _address: string | Falsy
 ): boolean | undefined {
-
-    console.log("_tokenIn: ", _tokenIn)
-    console.log("_tokenOut: ", _tokenOut)
-    console.log("_sponsor: ", _sponsor)
-    console.log("_address: ", _address)
-
 
     const path = 
     !_tokenIn || !_tokenOut

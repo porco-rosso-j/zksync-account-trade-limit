@@ -1,4 +1,3 @@
-//import { useEffect, useRef } from "react";
 import { Button, Box, Text, Flex, useColorMode } from "@chakra-ui/react";
 import { useEthers, useEtherBalance } from "@usedapp/core";
 import { formatEther } from "@ethersproject/units";
@@ -15,11 +14,8 @@ export default function ConnectButton({ handleOpenModal, fontSize, CAAddress, is
   const { activateBrowserWallet, account } = useEthers();
   const etherBalance = useEtherBalance((isCA ? CAAddress: account));
   const {colorMode } = useColorMode();
-  //const nativeTokenName = "ETH";
 
   function handleConnectWallet() {
-    // console.log("activate browser wallet")
-    //activateBrowserWallet({ type: "metamask" });
     activateBrowserWallet();
   }
 
@@ -27,8 +23,7 @@ export default function ConnectButton({ handleOpenModal, fontSize, CAAddress, is
     <Flex alignItems="center" bg={colorMode === "dark" ? "rgb(30,30,30)" : "rgb(247, 248, 250)"} borderRadius="xl" py="0" mx="1.5rem">
       <Box px="3">
         <Text color={colorMode === "dark" ? "white" : "black"} fontSize={fontSize}>
-          {/* {etherBalance && parseFloat(formatEther(etherBalance)).toFixed(0)}{" "} */}
-          {/* {nativeTokenName} */}
+          {console.log("ethbalance!: ", etherBalance)}
           {etherBalance && parseFloat(formatEther(etherBalance)).toFixed(0)} ETH
         </Text>
       </Box>

@@ -36,7 +36,8 @@ export async function deployModules (
         moduleManager.address, 
         wethContract.address, 
         oracle.address, 
-        toBN("5000")
+        toBN("5000"),
+        toBN("100000")
         ]
     ));
     console.log(`swapModuleBase: "${swapModuleBase.address}",`)
@@ -56,7 +57,7 @@ export async function deployModules (
     await (await moduleManager.addModule(swapModule.address, swapModuleBase.address, GASLIMIT)).wait();
 
     // enable WETH and DAI and Router
-    const assets = [wethContract.address, daiContract.address, lusdContract.address]
+    const assets = [wethContract.address, daiContract.address]
     await ( await swapModuleBase.enableAsset(assets, GASLIMIT)).wait();
     await ( await swapModuleBase.addRouter(routerContract.address, GASLIMIT)).wait();
     await ( await swapModuleBase.enabledDailyTradeLimit(toBN("10000"), GASLIMIT)).wait();

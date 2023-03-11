@@ -49,6 +49,7 @@ import {
   _dailyTradeLimit,
   _isDailyTradeLimitEnabled,
   _maxTradeAmountUSD,
+  _isAssetWhitelisted,
   _getPrice
  } from "../common/swapModuleBase"
 import { _isGasPayablePath } from "../common/gasPond"
@@ -73,7 +74,7 @@ export default function Trade({CAAddress, isCA} : Props) {
   const [quotedExchangeRate, setQuotedExchangeRate] = useState<number>(0);
   const [disabled, setDisabled] = useState<boolean>(false);
 
-  const provider = new Provider(ZkSyncLocal.rpcUrl);
+  //const provider = new Provider(ZkSyncLocal.rpcUrl);
   const signer = (new Web3Provider(window.ethereum)).getSigner();
   const txnOpts: TransactionOptions | undefined = signer
     ? { signer: signer }
@@ -166,6 +167,10 @@ export default function Trade({CAAddress, isCA} : Props) {
 
   const dailyTradeLimit = _dailyTradeLimit()
   const maxTradeAmountUSD = _maxTradeAmountUSD()
+  const isAssetWhitelisted: boolean | undefined = _isAssetWhitelisted(
+    isNativeTokenIn === false
+    ? tokenIn?.getAddressFromEncodedTokenName() : address.weth
+  )
 
   
   const resetTime = tradeLimitResult ? tradeLimitResult[2] : undefined;
@@ -183,6 +188,8 @@ export default function Trade({CAAddress, isCA} : Props) {
     isNativeTokenIn === false
     ? tokenIn?.getAddressFromEncodedTokenName() : address.weth
     )
+
+    // _isAssetWhitelisted
 
   const tokenInValue: number | undefined = 
     tokenInQuantity && tokenInPrice
@@ -560,12 +567,12 @@ export default function Trade({CAAddress, isCA} : Props) {
              fontSize={14} 
              py={2} 
              pl={2}
-             //bgColor={}
              borderColor="black"
              borderRadius="3"
              >
             <Box color={colorMode === "dark" ? "white" : "black"} fontSize={16} >
-              -- Trade Limit --
+              --- Account Trade Limit ---
+              { !isAssetWhitelisted ? <Text color ="red" fontSize={13}>[INVALID TOKEN] Unfortunately, the input token isn't whitelisted.</Text> : null}
               </Box>
               <Box color={colorMode === "dark" ? "white" : "black"}>
               - Max Size Per Trade: {maxTradeAmountUSD ? (maxTradeAmountUSD / 1e18).toFixed(0) : 0}$
@@ -575,16 +582,10 @@ export default function Trade({CAAddress, isCA} : Props) {
               - Daily Trade Limit: {dailyTradeLimit ? (dailyTradeLimit / 1e18).toFixed(0) : 0}$
               </Box>
             <Box color={colorMode === "dark" ? "white" : "black"}>
-            {console.log("dailyTradeLimit: ", dailyTradeLimit)}
-              {console.log("availabileAmount: ", availabileAmount)}
-              {console.log("estimatedAvailableAmount: ", estimatedAvailableAmount)}
-              {console.log("hasSufficientLimit: ", hasSufficientLimit)}
-              {console.log("hasExceedMaxTradeSize: ", hasExceedMaxTradeSize)}
-              {console.log("tokenInValue: ", tokenInValue)}
               
               - Available Amount: {availabileAmount ? (Number(availabileAmount) / 1e18).toFixed(0): null }$
               {" "} { estimatedAvailableAmount &&  hasSufficientLimit 
-              ? `to ${(estimatedAvailableAmount.toFixed(0))}$`   
+              ? `--> est. ${(estimatedAvailableAmount.toFixed(0))}$`   
               : <Text color ="red" fontSize={13}>[EXCEEDS DAILY LIMIT] Swap would fail. Please lower the amount.</Text> }
                </Box>
            </VStack>

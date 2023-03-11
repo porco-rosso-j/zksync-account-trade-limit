@@ -1,4 +1,4 @@
-import { Button, Box } from "@chakra-ui/react";
+import { Button, Box, Text, VStack } from "@chakra-ui/react";
 import { useEthers } from "@usedapp/core";
 import { ZkSyncLocal } from "../common/zkSyncLocal";
 import { Token } from "../common/Token";
@@ -46,7 +46,7 @@ export default function SwapButton({
   return account && isCorrectChainId ? (
     areTokensSelected && userHasSufficientBalance && isNonZeroQuantity ? (
       userHasSufficcientAllowance || isCA ? ( 
-        isErc20GasPayable && !isCA ? (
+        isErc20GasPayable && isCA ? (
           <Box mt="0.5rem">
           <Button
             onClick={() => {
@@ -55,12 +55,18 @@ export default function SwapButton({
             color="white"
             bg={lavender}
             width="100%"
-            p="1.62rem"
+            p="2.2rem"
             borderRadius="1.25rem"
             _hover={{ bg: turquoise }} // "rgb(147,196,125)"
             disabled={disabled}
           >
-            Swap {`( GAS FREE )`}
+            <VStack spacing={2}>
+            Swap
+            <Text fontSize={20}> Swap </Text> 
+            <Text pb={1} fontSize={15}> ( Gas fee paid in {tokenIn?.symbol} ) </Text> 
+            </VStack>
+            
+            
           </Button>
         </Box>
         ) : (

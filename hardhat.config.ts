@@ -36,7 +36,6 @@ const compilers = [
    {version: "0.8.1"}, {version: "0.8.4"}, {version: "0.8.11"},
    
 ]
-// {{version: "0.8.0"}, version: "0.4.0"}, {version: "0.5.16"}, {version: "0.6.0"}, {version: "0.6.3"}, {version: "0.6.6"}, {version: "0.6.12"}, 
 
 const config: HardhatUserConfig = {
 //module.exports = {
@@ -82,7 +81,7 @@ const config: HardhatUserConfig = {
   paths: {
     sources: "./src", // Use ./src rather than ./contracts as Hardhat expects
     cache: "./cache", // Use a different cache for Hardhat than Foundry
-    // artifacts: ".frontend/"
+    artifacts: "./frontend/artifacts"
   },
 };
 

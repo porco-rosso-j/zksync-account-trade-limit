@@ -6,7 +6,6 @@ import { lavender, turquoise } from "../theme";
 type Props = {
   openTokenModal: any;
   token: Token | null;
-  // image: string;
   setActivatedButton: any;
   disabled: boolean;
 };
@@ -29,11 +28,6 @@ export default function TokenSelect({ openTokenModal, token, /*image,*/ setActiv
       rightIcon={<ChevronDownIcon fontSize="1.37rem" cursor="pointer" />}
       disabled={disabled}
       >
-      {/* <Image boxSize="1.5rem"
-             src={image}
-             alt="Logo"
-             mr="0.5rem"
-      /> */}
       {token!.symbol}
     </Button>
   ) : (

@@ -5,15 +5,13 @@ import {
   Image,
   useColorMode,
   VStack,
-  HStack,
   useDisclosure,
   Switch,
   Spacer,
-  useMediaQuery,
-  Box
+  useMediaQuery
 } from "@chakra-ui/react";
 
-import logo from "../assets/logo.svg";
+import logo from "../assets/logo@_adobe_express.svg";
 import AccountModal from "./Modal/AccountModal";
 import ConnectButton from "./ConnectButton";
 
@@ -23,7 +21,6 @@ type Props = {
   setCAddress: any
   setIsCA: any
   isCA: any
- // isOwner: boolean
 };
 
 // 
@@ -56,7 +53,7 @@ export default function Layout({ children, setCAddress, CAAddress, setIsCA, isCA
     
     <Menu>
       <Flex alignItems="center" mx="1.5rem" mt="1.5rem">
-        <Image boxSize={getLogoSize()} src={logo} alt="nongaswap logo" />
+        <Image boxSize={getLogoSize()} src={logo} alt="swap logo" />
         <Spacer />
         <VStack spacing={4}>
           <Switch
@@ -80,7 +77,6 @@ export default function Layout({ children, setCAddress, CAAddress, setIsCA, isCA
         setCAddress={setCAddress} 
         setIsCA={setIsCA}
         isCA={isCA}
-        //isOwner={isOwner}
         />
       </Flex>
     </Menu>

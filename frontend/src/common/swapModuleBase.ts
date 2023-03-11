@@ -21,10 +21,6 @@ export function _checkTradeLimit(
      return undefined
    }
 
-   console.log("bool:", value?.[0])
-   console.log("available raw:", value?.[1].toString())
-   console.log("resetTime:", value?.[2])
-
     return [value?.[0], value?.[1], value?.[2]]
 }
 
@@ -33,7 +29,7 @@ export function _dailyTradeLimit(): number | undefined {
     const {value, error} = 
         useCall({
             contract: new Contract(address.swapModuleBase, swapModuleBaseArtifact.abi),
-            method: 'dailyTradeLimit',
+            method: 'defaultLimit',
             args: []
         }) ?? {}
    if(error) {
@@ -67,8 +63,25 @@ export function _maxTradeAmountUSD(): number | undefined {
     const {value, error} = 
         useCall({
             contract: new Contract(address.swapModuleBase, swapModuleBaseArtifact.abi),
-            method: 'maxTradeAmountUSD',
+            method: 'maxSizePerTrade',
             args: []
+        }) ?? {}
+   if(error) {
+     console.error(error.message)
+     return undefined
+   }
+
+    return value?.[0]
+
+}
+
+export function _isAssetWhitelisted(_tokenIn: string | Falsy): boolean | undefined {
+    
+    const {value, error} = 
+        useCall( _tokenIn && {
+            contract: new Contract(address.swapModuleBase, swapModuleBaseArtifact.abi),
+            method: 'validAsset',
+            args: [_tokenIn]
         }) ?? {}
    if(error) {
      console.error(error.message)

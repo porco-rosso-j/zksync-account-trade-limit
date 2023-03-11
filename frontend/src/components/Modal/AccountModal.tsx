@@ -27,7 +27,6 @@ type Props = {
   setCAddress:any;
   setIsCA: any;
   isCA: boolean;
-  //isOwner: boolean;
 };
 
 export default function AccountModal({ isOpen, onClose, setCAddress, CAAddress, setIsCA, isCA }: Props) {
@@ -41,10 +40,6 @@ export default function AccountModal({ isOpen, onClose, setCAddress, CAAddress, 
       setIsCA(false)
     }
   }
-
-  // function _setCAddress(address:string) {
-  //   setCAddress(address)
-  // }
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} isCentered size="md">
@@ -219,20 +214,13 @@ export default function AccountModal({ isOpen, onClose, setCAddress, CAAddress, 
           color={colorMode === "dark" ? "white" : "black"}
           
           onChange={async function (e) {
-            {console.log("e.target.value: ", e.target.value)}
-            //const isOwner : boolean | undefined = _isAccountOwner(e.target.value, account)
+
             if (
               e.target.value !== undefined 
               && !isCA
-              //&& isOwner
-              //0x6BF1419298C24818a8788547b35489d07C994De0
             ) {
-              {console.log("setCAddress? ")}
               setCAddress(e.target.value);
             } else {
-              console.log(
-                "Invalid Address"
-              );
             }
           }}
           />

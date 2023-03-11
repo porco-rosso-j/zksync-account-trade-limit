@@ -100,8 +100,6 @@ export async function _swapETHForTokenSponsored(
     const path = [address.weth, tokenOut as string]
     const quote = await router.callStatic.getAmountsOut(BigNumber.from(quantity), path)
 
-    console.log("customData: ", customData.paymasterParams.paymaster)
-
     const gasLimit = await router.estimateGas.swapExactETHForTokens(
         quote[1], 
         path,

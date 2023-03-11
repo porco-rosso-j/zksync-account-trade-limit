@@ -1,8 +1,5 @@
 /artifacts-zk
 /cache-zk
-/cache_hardhat
-/cache_hardhat-zk
-/forge-cache
 
 /deploy/deployUniswapV2.ts
 /deploy/dusts.ts
@@ -12,7 +9,6 @@
 /frontend/artifacts-zk
 /frontend/node_modules
 /frontend/build
-/frontend/firebase.json
 /frontend/yarn-error.log
 /frontend/yarn.lock
 /garbages/
@@ -21,6 +17,7 @@
 /out
 
 /local-setup
+/test/foundry/
 /typechain-types
 
 .env

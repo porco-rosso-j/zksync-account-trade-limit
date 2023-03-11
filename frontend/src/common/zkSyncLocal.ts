@@ -9,7 +9,7 @@ export const ZkSyncLocal:Chain = {
     chainName: 'zkSync local',
     isTestChain: true,
     isLocalChain: true,
-    multicallAddress: address.multicall,
+    multicallAddress: address.multicall1,
     multicall2Address: address.multicall2,
     rpcUrl: 'http://localhost:3050',
     nativeCurrency: {

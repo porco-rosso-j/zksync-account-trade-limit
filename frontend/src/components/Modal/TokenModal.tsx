@@ -5,10 +5,8 @@ import {
   ModalOverlay,
   ModalContent,
   ModalHeader,
-  ModalFooter,
   ModalBody,
   ModalCloseButton,
-  Text,
   Input,
   Link,
   useColorMode,
@@ -186,18 +184,6 @@ export default function TokenModal({
             </table>
           </div>
         </ModalBody>
-
-        {/* <ModalFooter
-          justifyContent="flex-start"
-          background="rgb(237, 238, 242)"
-          borderBottomLeftRadius="3xl"
-          borderBottomRightRadius="3xl"
-          p={6}
-        >
-          <Text color="black" fontWeight="medium" fontSize="md">
-            Manage Token List
-          </Text>
-        </ModalFooter> */}
       </ModalContent>
     </Modal>
   );

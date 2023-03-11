@@ -141,7 +141,7 @@ contract GasPond is
         address from = address(uint160(_transaction.from));
         address to = address(uint160(_transaction.to));
 
-        // validate that the caller account is registered in acountRegistry
+        // validate that the caller that account is registered in acountRegistry
         // if not revert.
         address registry = IModuleManager(moduleManager).accountRegistry();
         require(IAccountRegistry(registry).isAccount(from), "INVALID_ACCOUNT");
