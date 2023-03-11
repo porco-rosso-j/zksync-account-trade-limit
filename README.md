@@ -51,10 +51,12 @@ Account inherits Multicall contract that allows the account to perform both call
 git clone git@github.com:porco-rosso-j/zksync-account-trade-limit.git
 cd zksync-account-trade-limit
 yarn
-
 ```
 
 ### Run zkSync local network
+
+To set up a local environment, Docker and docker-compose should be installed.
+If they are not installed on your computer: [Install](https://docs.docker.com/get-docker/).
 
 ```shell
 git clone https://github.com/matter-labs/local-setup.git
@@ -71,12 +73,14 @@ yarn
 
 ### Compile & Deploy contracts
 
+Before, create `.env` file and add the line `NODE_ENV="local"`.
+
 ```shell
 yarn hardhat compile
 yarn hardhat deploy-zksync --script deploy/deployAll.ts
 ```
 
-copy & paste these addresses into `frontend/src/common/address.ts` and only the three token addresses into `frontend/src/components/Modal/tokenlist.json`.
+copy & paste these deployed addresses into `frontend/src/common/address.ts` and only the three token addresses into `frontend/src/components/Modal/tokenlist.json`.
 
 ```shell
 weth: "0xD49036D56f474152891D9eced770D6b90B2cEAE9",
