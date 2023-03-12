@@ -3,7 +3,7 @@
 This repo is a submission to the [zkSync Era Hack0 on buidlBox](https://app.buidlbox.io/zksync/era-hack-series)
 
 <p align="center">
-<img width="1000" alt="Screen Shot 2023-03-11 at 17 46 38" src="https://user-images.githubusercontent.com/88586592/224474754-7c02a7f4-75de-4e6f-bff1-3113c5d7b095.png">
+<img width="750" alt="Screen Shot 2023-03-11 at 17 46 38" src="https://user-images.githubusercontent.com/88586592/224474754-7c02a7f4-75de-4e6f-bff1-3113c5d7b095.png">
 </p>
 
 ## Overview
@@ -50,6 +50,7 @@ Account inherits Multicall contract that allows the account to perform both call
 For example, 1) approve tx to an ERC20 token 2) swap tx via SwapModule.
 
 ## Demo
+### Video
 
 The demo below shows how it looks like to swap DAI for ETH on DEX UI.
 
@@ -58,6 +59,14 @@ The demo below shows how it looks like to swap DAI for ETH on DEX UI.
 3. Swap DAI for ETH ( gas fee paid in DAI via GasPond ) by signing for EIP712 transaction with Metamask.
 
 https://user-images.githubusercontent.com/88586592/224517521-52d24b7a-de5a-43c2-a3a6-b4f6399f9283.mp4
+
+### Flow
+
+The image below depicts the technical flow of the transaction in the demo video. 
+
+<p align="center">
+<img width="750" alt="Screen Shot 2023-03-12 at 7 50 45" src="https://user-images.githubusercontent.com/88586592/224521483-df2a6cad-c653-4a16-91fb-6e73de31a1db.png">
+<p/>
 
 ## Deployment
 
