@@ -125,13 +125,15 @@ yarn start
 
 ### Connect Wallet & Account
 
-Put the deployed account address (`0xD1180...`) into the field below `"Connect With Contract Account"` button and click it. If successuful, the connnected address on UI will be the account address.
+Tap "Connect to a wallet" button at the top right in the UI and click it again. Then it shows you the account setting popup like in the image below. 
+
+Put the deployed account address (`0xD1180...`) into the field below `"Connect With Contract Account"` button and click it. If successuful, the connnected address on UI will be changed to the account address.
 
 <p align="center">
 <img width="500" alt="Screen Shot 2023-03-12 at 7 35 06" src="https://user-images.githubusercontent.com/88586592/224514450-c43ba27d-68be-4e6b-b6df-2f0307abc6b1.png">
 <p/>
 
-After the AA-wallet is connected, the information of Account trade Limit will be shown under the swap button.
+After the AA-wallet is connected, the information of Account trade Limit will be shown at the bottom.
 
 <p align="center">
 <img width="500" alt="Screen Shot 2023-03-12 at 7 50 45" src="https://user-images.githubusercontent.com/88586592/224514906-22739ff8-ff94-4dde-a087-ad1a5e7909e7.png">
