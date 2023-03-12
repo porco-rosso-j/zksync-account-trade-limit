@@ -1,9 +1,9 @@
 # Account Trade Limit
 
 This repo is a submission to the [zkSync Era Hack0 on buidlBox](https://app.buidlbox.io/zksync/era-hack-series)
-
+<p align="center">
 <img width="1000" alt="Screen Shot 2023-03-11 at 17 46 38" src="https://user-images.githubusercontent.com/88586592/224474754-7c02a7f4-75de-4e6f-bff1-3113c5d7b095.png">
-
+</p>
 
 ## Overview
 
@@ -38,7 +38,7 @@ This model could drastically reduce the cost of providing meta-transactions so t
 
 ### An example of the use of GasPond for a project
 
-A project called XYZinc becomes a sponsor on GasPond, aiming to create more trading activities and increase awareness for their native token XYZ. As such, for purchases of XYZ tokens on DEXs supported by SwapModule, it accepts gas payments paid in XYZ with a 50% discount.
+A project called XYZinc becomes a sponsor on GasPond, aiming to increase trading activities and awareness of their native token XYZ. As such, for purchases of XYZ tokens on DEXs supported by SwapModule, it accepts gas payments paid in XYZ with a 50% discount.
 
 ## Multicall
 
@@ -50,7 +50,18 @@ For example, 1) approve tx to an ERC20 token 2) swap tx via SwapModule.
 
 ## Demo
 
+The demo below shows how it looks like to swap DAI for ETH on DEX UI. 
+
+1. Connect the deployed account contract with the Swap UI.
+2. Check several limitations that SwapModule imposes on Account: Token whitelist, Max size per trade and Daily trade limit.
+3. Swap DAI for ETH ( gas fee paid in DAI via GasPond ) by signing for EIP712 transaction with Metamask. 
+
+
+https://user-images.githubusercontent.com/88586592/224517521-52d24b7a-de5a-43c2-a3a6-b4f6399f9283.mp4
+
 ## Deployment
+
+You can deploy and configure all the contracts on zkSync local network and try 
 
 ### Setup & Install dependencies
 
@@ -109,7 +120,7 @@ multicall1: "0xcFEbe41427dB860B7760507f50F39370e27e9D61",
 multicall2: "0x8A1215E77D2ea1ce759a6bB0366870B21548F502",
 ```
 
-Copy & paste all these deployed addresses into [`frontend/src/common/address.ts`](https://github.com/porco-rosso-j/zksync-account-trade-limit/blob/main/frontend/src/common/address.ts) and only the three of token addresses into [`frontend/src/components/Modal/tokenlist.json`](https://github.com/porco-rosso-j/zksync-account-trade-limit/blob/main/frontend/src/components/Modal/token_list.json).
+Copy & paste all these deployed addresses into [`address.ts`](https://github.com/porco-rosso-j/zksync-account-trade-limit/blob/main/frontend/src/common/address.ts) and only the three of token addresses into [`tokenlist.json`](https://github.com/porco-rosso-j/zksync-account-trade-limit/blob/main/frontend/src/components/Modal/token_list.json).
 
 ### Run frontend
 
@@ -131,6 +142,13 @@ After the AA-wallet is connected, the information of Account trade Limit will be
 <img width="500" alt="Screen Shot 2023-03-12 at 7 50 45" src="https://user-images.githubusercontent.com/88586592/224514906-22739ff8-ff94-4dde-a087-ad1a5e7909e7.png">
 <p/>
 
+And please put the amount you want to swap. As you can see in the demo above, several limitations and warnings by SwapModule will be shown in `Account Trade Limit` section. Swap succeeds unless it violates those imposed restrictions. 
+
+Account only owns DAI, neither ETH, WETH nor LUSD. But swapping ETH for ETH will succeed because multicall feature abstracts the approval process and gas fee is paid in DAI through GasPond. 
+
+## Question & Feedback
+Discord: Porco#3106
+Twitter: [@porco_rosso_j](https://twitter.com/porco_rosso_j)
 
 
 
