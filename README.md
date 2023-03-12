@@ -61,7 +61,7 @@ https://user-images.githubusercontent.com/88586592/224517521-52d24b7a-de5a-43c2-
 
 ## Deployment
 
-You can deploy and configure all the contracts on zkSync local network and try
+Deploy and configure all the contracts on zkSync local network and try features available with Account Abstraction Wallet and its module. 
 
 ### Setup & Install dependencies
 
