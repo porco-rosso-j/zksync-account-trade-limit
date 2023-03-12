@@ -139,9 +139,9 @@ After the AA-wallet is connected, the information of Account trade Limit will be
 <img width="500" alt="Screen Shot 2023-03-12 at 7 50 45" src="https://user-images.githubusercontent.com/88586592/224514906-22739ff8-ff94-4dde-a087-ad1a5e7909e7.png">
 <p/>
 
-And please put the amount you want to swap. As you can see in the demo above, several limitations and warnings by SwapModule will be shown in `Account Trade Limit` section. Swap succeeds unless it violates those imposed restrictions.
-
 Account only owns DAI, neither ETH, WETH nor LUSD. But swapping DAI for ETH will succeed because multicall feature abstracts the approval process and gas fee is paid in DAI through GasPond.
+
+So, please put the amount you want to swap. As you can see in the demo above, several limitations and warnings by SwapModule will be shown in `Account Trade Limit` section. Swap succeeds unless it violates those imposed restrictions.
 
 ## Question & Feedback
 
