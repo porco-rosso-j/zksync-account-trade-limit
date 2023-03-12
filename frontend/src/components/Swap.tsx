@@ -582,11 +582,17 @@ export default function Trade({CAAddress, isCA} : Props) {
               - Daily Trade Limit: {dailyTradeLimit ? (dailyTradeLimit / 1e18).toFixed(0) : 0}$
               </Box>
             <Box color={colorMode === "dark" ? "white" : "black"}>
+              {console.log("estimatedAvailableAmount: ", estimatedAvailableAmount)}
+              {console.log("hasSufficientLimit: ", hasSufficientLimit)}
               
               - Available Amount: {availabileAmount ? (Number(availabileAmount) / 1e18).toFixed(0): null }$
-              {" "} { estimatedAvailableAmount &&  hasSufficientLimit 
+              {" "} 
+              { estimatedAvailableAmount && hasSufficientLimit 
+              ?  estimatedAvailableAmount > 0 && tokenInQuantity 
               ? `--> est. ${(estimatedAvailableAmount.toFixed(0))}$`   
-              : <Text color ="red" fontSize={13}>[EXCEEDS DAILY LIMIT] Swap would fail. Please lower the amount.</Text> }
+              : <Text color ="red" fontSize={13}>[EXCEEDS DAILY LIMIT] Swap would fail. Please lower the amount.</Text>
+              : null 
+              }
                </Box>
            </VStack>
           )}
