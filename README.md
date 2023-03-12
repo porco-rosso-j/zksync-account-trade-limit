@@ -82,13 +82,6 @@ cd local-setup
 ./start.sh
 ```
 
-### Setup frontend
-
-```shell
-cd frontend
-yarn
-```
-
 ### Compile & Deploy contracts
 
 Before, create `.env` file and add the line `NODE_ENV="local"`.
@@ -122,9 +115,11 @@ multicall2: "0x8A1215E77D2ea1ce759a6bB0366870B21548F502",
 
 Copy & paste all these deployed addresses into [`address.ts`](https://github.com/porco-rosso-j/zksync-account-trade-limit/blob/main/frontend/src/common/address.ts) and only the three of token addresses into [`tokenlist.json`](https://github.com/porco-rosso-j/zksync-account-trade-limit/blob/main/frontend/src/components/Modal/token_list.json).
 
-### Run frontend
+### Setup & Run frontend
 
 ```shell
+cd frontend
+yarn
 yarn start
 ```
 
