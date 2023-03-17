@@ -6,7 +6,6 @@
 /deploy/script.ts
 /deploy/script1.ts
 
-/frontend/artifacts-zk
 /frontend/node_modules
 /frontend/build
 /frontend/yarn-error.log
