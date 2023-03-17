@@ -1,8 +1,7 @@
 import { ethers, BigNumber } from 'ethers';
 import { Provider, utils, Contract, Web3Provider, types, Signer } from 'zksync-web3';
-import { UniswapV2Router, SwapModuleUniV2 } from "../../../typechain-types"
-import {default as routerArtifact} from "artifacts/src/swap/UniswapV2Router.sol/UniswapV2Router.json"
-import {default as swapModuleArtifact} from "artifacts/src/aa-wallet/modules/swapModule/SwapModuleUnV2.sol/SwapModuleUniV2.json"
+import { UniswapV2Router } from "../../../typechain-types"
+import {default as routerArtifact} from "./artifacts/UniswapV2Router.json"
 import {address} from "./address"
 
 const gasLimit = ethers.utils.hexlify(1000000)

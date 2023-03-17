@@ -1,6 +1,6 @@
 import { Contract, BigNumber } from 'ethers';
 import {default as swapModuleBaseArtifact} from "artifacts/src/aa-wallet/modules/swapModule/SwapModuleBase.sol/SwapModuleBase.json"
-import {default as oracleArtifact} from "artifacts/src/aa-wallet/modules/swapModule/Oracle.sol/Oracle.json"
+import {default as oracleArtifact} from "./artifacts/Oracle.json"
 import {address} from "./address"
 import { Falsy, useCall } from '@usedapp/core'
 

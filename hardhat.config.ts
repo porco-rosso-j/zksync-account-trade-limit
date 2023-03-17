@@ -81,7 +81,7 @@ const config: HardhatUserConfig = {
   paths: {
     sources: "./src", // Use ./src rather than ./contracts as Hardhat expects
     cache: "./cache", // Use a different cache for Hardhat than Foundry
-    artifacts: "./frontend/artifacts"
+    //artifacts: "./frontend/artifacts"
   },
 };
 

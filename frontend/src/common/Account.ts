@@ -1,5 +1,5 @@
 import { Contract, ethers } from 'ethers';
-import {default as accountArtifact} from "artifacts/src/aa-wallet/Account.sol/Account.json" //yarn upgrade artifacts --latest
+import {default as accountArtifact} from "./artifacts/Account.json"
 //import {address} from "./address"
 import { Falsy, useCall } from '@usedapp/core'
 

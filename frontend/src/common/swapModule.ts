@@ -1,9 +1,9 @@
 import { ethers, BigNumber } from 'ethers';
 import { Provider, utils, Contract, Web3Provider, types, Signer } from 'zksync-web3';
 import { UniswapV2Router, SwapModuleUniV2, MockTKN } from "../../../typechain-types"
-import {default as tokenArtifact} from "artifacts/src/swap/test/MockTKN.sol/MockTKN.json"
-import {default as routerArtifact} from "artifacts/src/swap/UniswapV2Router.sol/UniswapV2Router.json"
-import {default as swapModuleArtifact} from "artifacts/src/aa-wallet/modules/swapModule/SwapModuleUnV2.sol/SwapModuleUniV2.json"
+import {default as tokenArtifact} from "./artifacts/MockTKN.json"
+import {default as routerArtifact} from "./artifacts/UniswapV2Router.json"
+import {default as swapModuleArtifact} from "./artifacts/SwapModuleUniV2.json"
 import {address} from "./address"
 
 const provider = new Provider("http://localhost:3050", 270);

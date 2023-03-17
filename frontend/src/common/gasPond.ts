@@ -1,5 +1,5 @@
 import { Contract, ethers } from 'ethers';
-import {default as gasPondArtifact} from "artifacts/src/aa-wallet/paymaster/GasPond.sol/GasPond.json" //yarn upgrade artifacts --latest
+import {default as gasPondArtifact} from "./artifacts/GasPond.json"
 import {address} from "./address"
 import { Falsy, useCall } from '@usedapp/core'
 
